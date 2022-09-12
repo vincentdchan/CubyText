@@ -1,0 +1,147 @@
+
+.cuby-tab {
+  position: absolute;
+  height: 100%;
+  flex-grow: 1;
+  flex-shrink: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.cuby-content-container {
+  flex-grow: 1;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.cuby-split {
+  position: absolute;
+  height: 100%;
+  cursor: col-resize;
+
+  &:hover {
+    background-color: var(--app-border-color);
+  }
+
+  .central {
+    width: 1px;
+    height: 100%;
+    background-color: var(--app-border-color);
+    transform: translateX(2px);
+  }
+}
+
+.cuby-tab-editor {
+  height: 100%;
+  overflow: scroll;
+  flex-grow: 1;
+  flex-shrink: 0;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+
+  .blocky-editor-title-container {
+    font-size: 32px;
+    font-weight: 700;
+  }
+
+  .blocky-checkbox {
+    margin-top: 4px;
+  }
+
+  .blocky-block-text-content {
+    line-height: 24px;
+  }
+
+  .blocky-h1 {
+    line-height: 32px;
+  }
+
+  .blocky-h2 {
+    line-height: 30px;
+  }
+
+  .blocky-h3 {
+    line-height: 28px;
+  }
+
+  .cuby-tab-editor-scroll {
+    position: relative;
+    display: flex;
+    justify-content: center;
+
+    .blocky-documents {
+      width: 580px;
+      min-width: 260px;
+    }
+
+    .blocky-follow-widget {
+      z-index: 20;
+    }
+  }
+
+  --color-neutral-muted: rgba(175, 184, 193, 0.2);
+}
+
+.cuby-tab-placeholder-container {
+  height: 100%;
+  overflow: scroll;
+  position: relative;
+}
+
+.cuby-tab-title {
+  flex-grow: 0;
+  flex-shrink: 0;
+  height: 24px;
+  font-size: 12px;
+  align-items: center;
+  display: flex;
+  position: relative;
+  justify-content: center;
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+  border-bottom-color: var(--app-border-color);
+
+  .cuby-tab-title-text {
+    max-width: 65%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: var(--app-gray-color);
+  }
+
+  &.focused {
+    .cuby-tab-title-text {
+      color: var(--app-color);
+      font-weight: 500;
+    }
+  }
+}
+
+.cuby-tab-title-close-btn {
+  position: absolute;
+  right: 23px;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+
+  path {
+    fill: var(--app-icon-color);
+  }
+
+  &:hover {
+  background-color: var(--app-border-color);
+  }
+}
+
+.cuby-tab-graph {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  width: 100%;;
+  height: 100%;
+}

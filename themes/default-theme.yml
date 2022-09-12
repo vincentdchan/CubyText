@@ -1,0 +1,19 @@
+name: Default
+
+app:
+  color: "#444"
+  descriptionColor: rgb(121, 121, 118)
+  backgroundColor: rgb(255, 255, 253)
+  hoverBackgroundColor: rgb(240, 239, 236)
+  hoverBackgroundColorDeeper: rgb(210, 209, 207)
+  borderColor: rgb(201, 201, 201)
+  iconColor: rgb(119, 119, 114)
+  grayTextColor: rgb(180, 180, 177)
+  dangerColor: rgb(201, 56, 56)
+
+tooltip:
+  backgroundColor: rgb(15, 15, 15)
+  color: rgb(231, 231, 231)
+
+navbar:
+  backgroundColor: rgb(237, 235, 236)

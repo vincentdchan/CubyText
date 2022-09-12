@@ -1,0 +1,47 @@
+
+.cuby-search-panel {
+  background-color: var(--app-bg-color);
+  width: 420px;
+  margin-left: 50%;
+  margin-top: 120px;
+  transform: translateX(-50%);
+  border-radius: 8px;
+  box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+
+  .cuby-search-content {
+    width: 100%;
+    max-height: 380px;
+    overflow-y: scroll;
+  }
+}
+
+.cuby-search-render-item {
+  height: 28px;
+  padding-left: 14px;
+  padding-right: 14px;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  &.selected {
+    background-color: var(--app-hover-bg-color);
+  }
+}
+
+.cuby-input-container {
+  width: 100%;
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+  border-bottom-color: var(--app-border-color);
+}
+
+.cuby-input-container > input {
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  font-size: 18px;
+
+  &:focus {
+    outline: none;
+  }
+}

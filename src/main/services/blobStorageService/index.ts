@@ -1,0 +1,1 @@
+export { BlobStorageService } from "./blobStorageService";

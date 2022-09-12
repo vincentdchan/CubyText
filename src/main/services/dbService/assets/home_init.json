@@ -1,0 +1,79 @@
+{
+  "nodeName": "document",
+  "children": [
+    {
+      "nodeName": "head",
+      "children": [
+        {
+          "nodeName": "Title",
+          "attributes": { "textContent": [{ "insert": "Home" }] },
+          "#meta": { "textContent": "rich-text" },
+          "id": "title"
+        }
+      ]
+    },
+    {
+      "nodeName": "body",
+      "children": [
+        {
+          "nodeName": "Text",
+          "attributes": {
+            "textContent": [{ "insert": "Welcome" }],
+            "textType": "h1"
+          },
+          "#meta": { "textContent": "rich-text" },
+          "id": "Blk-9Kws8xd8Qf2o"
+        },
+        {
+          "nodeName": "Text",
+          "attributes": {
+            "textContent": [
+              {
+                "insert": "This is the home page for you. You can organize your contents here."
+              }
+            ]
+          },
+          "#meta": { "textContent": "rich-text" },
+          "id": "Blk-GI4KO9bGR6ze"
+        },
+        {
+          "nodeName": "Text",
+          "attributes": {
+            "textContent": [{ "insert": "Docs management" }],
+            "textType": "h1"
+          },
+          "#meta": { "textContent": "rich-text" },
+          "id": "Blk-eRxqfa19oxlk"
+        },
+        {
+          "nodeName": "Text",
+          "attributes": {
+            "textContent": [{ "insert": "Recent documents" }],
+            "textType": "h2"
+          },
+          "#meta": { "textContent": "rich-text" },
+          "id": "Blk-oaCFoxQm4tle"
+        },
+        {
+          "nodeName": "DocumentsExplorer",
+          "attributes": { "source": "recent" },
+          "id": "Blk-TBzk8J3tuMY2"
+        },
+        {
+          "nodeName": "Text",
+          "attributes": {
+            "textContent": [{ "insert": "Trash" }],
+            "textType": "h2"
+          },
+          "#meta": { "textContent": "rich-text" },
+          "id": "Blk-IWh7v3aiNKg0"
+        },
+        {
+          "nodeName": "DocumentsExplorer",
+          "attributes": { "source": "trash" },
+          "id": "Blk-G1tOMQxhi8h1"
+        }
+      ]
+    }
+  ]
+}

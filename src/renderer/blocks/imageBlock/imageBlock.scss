@@ -1,0 +1,21 @@
+
+.blocky-image-block {
+  background-color: rgb(237, 237, 235);
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    max-width: 100%;
+  }
+}
+
+.blocky-image-block-file-selector {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  top: 0px;
+  left: 0px;
+  opacity: 0;
+}

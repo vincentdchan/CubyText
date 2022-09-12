@@ -1,0 +1,36 @@
+
+.cuby-main-horizontal {
+  display: flex;
+  flex-grow: 1;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.cuby-tab-content {
+  height: 100%;
+  display: flex;
+}
+
+.cuby-main-content {
+  flex-grow: 1;
+  flex-shrink: 0;
+}
+
+.cuby-vertical-split {
+  height: 100%;
+  width: 5px;
+  position: absolute;
+  top: 0px;
+  cursor: col-resize;
+
+  .central {
+    height: 100%;
+    width: 1px;
+    transform: translateX(2px);
+    background-color: var(--app-border-color);
+  }
+
+  &:hover {
+    background-color: var(--app-border-color);
+  }
+}

@@ -1,0 +1,29 @@
+
+.cuby-pane-title {
+  height: 28px;
+  line-height: 28px;
+  display: flex;
+  align-items: center;
+  padding-left: 12px;
+  padding-right: 4px;
+  flex-grow: 0;
+  flex-shrink: 0;
+
+  .content {
+    font-size: 12px;
+    font-weight: bold;
+  }
+
+  .right {
+    margin-left: auto;
+  }
+}
+
+.cuby-pane-button {
+  background-color: transparent;
+  outline: none;
+  border: none;
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: 4px;
+}

@@ -1,0 +1,11 @@
+
+.cuby-title-bar {
+  display: flex;
+  align-items: center;
+
+  .left-border {
+    border-left-color: var(--app-gray-color);
+    border-left-width: 1px;
+    border-left-style: solid;
+  }
+}

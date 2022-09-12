@@ -1,0 +1,41 @@
+
+.blocky-example-toolbar-container {
+  padding: 0px;
+  border-radius: 4px;
+  overflow: hidden;
+  box-sizing: border-box;
+  background-color: rgb(56, 56, 56);;
+  box-shadow: 0px 0px 6px rgba(0, 0, 0, 0.7);
+}
+
+.blocky-toolbar-menu-button {
+  background-color: rgb(56, 56, 56);;
+  color: rgb(244, 244, 244);
+  border: none;
+  margin: 0px;
+  height: 28px;
+  line-height: 28px;
+
+  &.rect {
+    width: 28px;
+  }
+
+  &:hover {
+    background-color: rgb(79, 79, 79);
+  }
+
+  &.bold {
+    font-family: 'Times New Roman', Times, serif;
+    font-weight: 600;
+  }
+
+  &.italic {
+    font-family: 'Times New Roman', Times, serif;
+    font-style: italic;
+  }
+
+  &.underline {
+    font-family: 'Times New Roman', Times, serif;
+    text-decoration: underline;
+  }
+}

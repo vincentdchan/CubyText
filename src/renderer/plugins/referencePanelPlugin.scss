@@ -1,0 +1,15 @@
+
+.cuby-reference {
+  padding: 2px 4px;
+  margin-left: 4px;
+  margin-right: 4px;
+  border-radius: 8px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: var(--app-gray-color);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  svg {
+    margin-right: 8px;
+  }
+}

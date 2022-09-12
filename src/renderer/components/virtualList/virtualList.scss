@@ -1,0 +1,19 @@
+
+.cuby-virtual-list {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+
+  &.flex {
+    flex-grow: 1;
+    flex-shrink: 0;
+  }
+}
+
+.cuby-virtual-list-content {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;;
+}

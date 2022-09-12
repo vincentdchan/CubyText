@@ -1,0 +1,91 @@
+
+.cuby-documents {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  .title-row {
+    flex-grow: 0;
+    flex-shrink: 0;
+    height: 28px;
+    background-color: var(--app-hover-bg-color);
+    display: flex;
+
+    .flex-grow {
+      flex-grow: 1;
+      flex-shrink: 0;
+    }
+
+    .column {
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 28px;
+    }
+  }
+
+  .list-container {
+    flex-grow: 1;
+    flex-shrink: 0;
+  }
+
+  .empty-placeholder {
+    flex-grow: 1;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    p {
+      font-size: 14px;
+    }
+  }
+}
+
+.cuby-doc-item {
+  display: flex;
+  align-items: center;
+
+  .icon {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    margin-right: 8px;
+
+    svg {
+      transform: scale(0.8);
+    }
+  }
+
+  .title {
+    flex-grow: 1;
+    flex-shrink: 0;
+    height: 100%;
+    position: relative;
+  }
+
+  .title-content {
+    position: absolute;
+    font-size: 15px;
+    left: 0px;
+    top: 0px;
+    width: 100%;
+    height: 100%;
+    line-height: 28px;
+  }
+
+  .modified-at {
+    font-size: 12px;
+    padding-left: 8px;
+  }
+}
+
+.cuby-more-button {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  cursor: pointer;
+}

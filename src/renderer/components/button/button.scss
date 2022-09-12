@@ -1,0 +1,26 @@
+
+.cuby-button {
+  padding: 4px 8px;
+  border-radius: 4px;
+  border-style: solid;
+  border-width: 1px;
+
+
+  &.primary {
+    color: white;
+    background-color: rgb(52, 184, 220);
+    border-color: rgb(139, 216, 237);
+    &:hover {
+      background-color: rgb(90, 197, 226);
+    }
+  }
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.2);
+  }
+
+  &[disabled] {
+    background-color: rgb(175, 175, 175);
+    border: none;
+  }
+}

@@ -1,0 +1,48 @@
+
+.cuby-tab-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .recent-container {
+    min-width: 340px;
+    height: 240px;
+    border-radius: 8px;
+    overflow: hidden;
+    border-style: solid;
+    border-width: 1px;
+    border-color: var(--app-border-color);
+  }
+
+  .button-group {
+    margin-top: 12px;
+    display: flex;
+    width: 100%;
+  }
+}
+
+.cuby-tab-placeholder-content {
+  padding: 72px 0px;
+  max-width: 420px;
+  width: 420px;
+}
+
+.cuby-tab-placeholder-desp {
+  p {
+    font-size: 12px;
+    margin-top: 4px;
+    margin-bottom: 4px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+}
+
+.cuby-key-span {
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 600;
+  border-style: solid;
+  border-color: var(--app-border-color);
+  border-width: 1px;
+  border-radius: 4px;
+  padding: 2px 4px;
+}

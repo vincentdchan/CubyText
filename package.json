@@ -1,0 +1,58 @@
+{
+  "name": "cuby-text",
+  "version": "0.0.1",
+  "main": "dist/main/main.js",
+  "author": "Vincent Chan",
+  "license": "MIT",
+  "engines": {
+    "node": "16"
+  },
+  "scripts": {
+    "start": "node scripts/build.js",
+    "build": "node scripts/build.js release",
+    "build:package": "node scripts/build_asar.js",
+    "check": "tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "devDependencies": {
+    "@electron/osx-sign": "^1.0.1",
+    "@fortawesome/fontawesome-svg-core": "^6.1.2",
+    "@fortawesome/free-solid-svg-icons": "^6.1.2",
+    "@preact/preset-vite": "^2.3.0",
+    "@svgr/core": "^6.3.1",
+    "@types/is-hotkey": "^0.1.7",
+    "@types/js-yaml": "^4.0.5",
+    "@types/lodash-es": "^4.17.6",
+    "@types/sqlite3": "^3.1.8",
+    "@typescript-eslint/eslint-plugin": "^5.35.1",
+    "@typescript-eslint/parser": "^5.35.1",
+    "blocky-common": "^2.10.0",
+    "blocky-core": "^2.15.3",
+    "blocky-data": "^2.15.0",
+    "blocky-preact": "^2.15.1",
+    "dayjs": "^1.11.5",
+    "electron": "^20.1.2",
+    "electron-installer-dmg": "^4.0.0",
+    "electron-packager": "^16.0.0",
+    "esbuild": "^0.14.51",
+    "eslint": "^8.23.0",
+    "force-graph": "^1.42.13",
+    "fuse.js": "^6.6.2",
+    "is-hotkey": "^0.2.0",
+    "js-yaml": "^4.1.0",
+    "lodash-es": "^4.17.21",
+    "preact": "^10.10.0",
+    "sass": "^1.54.0",
+    "typescript": "^4.8.2",
+    "vite": "^3.0.4"
+  },
+  "resolutions": {
+    "@types/cacheable-request": "^6.0.2",
+    "@types/responselike": "^1.0.0"
+  },
+  "dependencies": {
+    "log4js": "^6.6.1",
+    "sqlite3": "^5.0.10"
+  }
+}

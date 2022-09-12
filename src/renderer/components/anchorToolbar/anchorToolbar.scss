@@ -1,0 +1,32 @@
+
+.cuby-anchor-toolbar {
+  position: fixed;
+  padding: 4px 8px;
+  background-color: var(--app-bg-color);
+  box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.6);
+  border-radius: 4px;
+  overflow: hidden;
+  box-sizing: border-box;
+  height: 28px;
+  background-color: rgb(56, 56, 56);;
+
+  input {
+    border: none;
+    margin-right: 8px;
+    background-color: rgb(56, 56, 56);
+    color: rgb(244, 244, 244);
+
+    &::placeholder {
+      color: grey;
+    }
+
+    &:focus {
+      outline: none;
+    }
+  }
+
+  button {
+    font-size: 12px;
+    padding: 2px 4px;
+  }
+}
