@@ -25,18 +25,22 @@ async function build() {
   });
 
   console.log("run electron-packager")
-  child_process.execSync("npx electron-packager ./asar_build CubyText --overwrite", {
+  child_process.execSync("npx electron-packager ./asar_build CubyText --icon ../icons/icon.png --overwrite", {
     cwd: "out/",
     stdio: 'inherit'
   });
 
-  const appPath = path.join("out", `CubyText-${process.platform}-${process.arch}/CubyText.app`);
+  if (process.platform === "darwin") {
+    const appPath = path.join("out", `CubyText-${process.platform}-${process.arch}/CubyText.app`);
 
-  const buildDir = path.join(appPath, "/Contents/Resources");
-  fs.cpSync("icons/icon.icns", path.join(buildDir, "electron.icns"));
-
-  await codeSign(appPath);
-  await buildDmg(appPath);
+    const buildDir = path.join(appPath, "/Contents/Resources");
+    fs.cpSync("icons/icon.icns", path.join(buildDir, "electron.icns"));
+  
+    await codeSign(appPath);
+    await buildDmg(appPath);
+  } else if (process.platform === "linux") {
+    await buildDeb();
+  }
 }
 
 async function codeSign(appPath) {
@@ -62,5 +66,20 @@ async function buildDmg(appPath) {
   });
 }
 
+async function buildDeb() {
+  const installer = require('electron-installer-debian');
+  const appPath = path.join("out", `CubyText-${process.platform}-${process.arch}`);
+  const options = {
+    src: appPath,
+    dest: 'out/installers/',
+    arch: 'amd64',
+    name: "CubyText",
+    bin: "CubyText",
+    icon: "icons/icons.png"
+  }
+
+  console.log('Creating package (this may take a while)');
+  await installer(options);
+}
 
 build();
