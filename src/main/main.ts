@@ -67,11 +67,13 @@ import { BlockyDocument } from "blocky-data";
 import logger, { configure as configureLog } from "./services/logService";
 import { homeId } from "@pkg/common/constants";
 
-app.setName("Cuby Text");
+const appName = "CubyText";
+
+app.setName(appName);
 
 const createWindow = () => {
   const options: BrowserWindowConstructorOptions = {
-    title: "Cuby Text",
+    title: appName,
     width: 1024,
     height: 620,
     webPreferences: {
