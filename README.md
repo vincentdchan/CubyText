@@ -27,7 +27,11 @@ It's very inspirational. I like them, but I want privacy and native experiences 
 So I created CubyText. It's fast and designed to be extensible.
 To achieve this goal I built the [blocky editor](https://github.com/vincentdchan/blocky-editor).
 
-It doesn't have complex concepts, just simple pages and blocks.
+It doesn't have complex concepts, just simple pages and blocks. No big deal.
+
+## Download
+
+[Releases](https://github.com/vincentdchan/CubyText/releases)
 
 ## Features
 
