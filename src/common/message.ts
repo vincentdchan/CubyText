@@ -11,8 +11,13 @@ export class MessageDefinition<ReqT, RespT> {
   listenMainIpc(
     ipcMain: IpcMain,
     handler: (evt: IpcMainInvokeEvent, req: ReqT) => RespT | Promise<RespT>,
-  ) {
+  ): IDisposable {
     ipcMain.handle(this.name, handler);
+    return {
+      dispose: () => {
+        ipcMain.removeListener(this.name, handler);
+      },
+    };
   }
 
   request(req: ReqT): Promise<RespT> {
