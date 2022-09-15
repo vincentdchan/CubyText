@@ -1,0 +1,93 @@
+
+.cuby-welcome-container {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
+  display: flex;
+}
+
+.cuby-main-content {
+  -webkit-app-region: drag;
+  flex: 1;
+  flex-direction: column;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .logo-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 16px;
+
+    img {
+      width: 64px;
+      height: 64px;
+    }
+
+    h2 {
+      font-weight: 400;
+    }
+
+  }
+}
+
+.cuby-welcome-item {
+  cursor: pointer;
+  margin: 8px 0px;
+  display: flex;
+  font-size: 15px;
+  font-weight: 400;
+
+  .icon {
+    width: 16px;
+  }
+
+  .content {
+    margin-left: 12px;
+  }
+}
+
+.cuby-file-list {
+  flex: 0;
+  min-width: 200px;
+  height: 100%;
+  background-color: var(--app-hover-bg-color);
+  padding: 12px;
+}
+
+.cuby-file-list-item {
+  border-radius: 8px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+
+  .icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 100%;
+    margin-right: 4px;
+
+    svg {
+      transform: scale(1.8);
+    }
+  }
+
+  .title {
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+
+  .path {
+    color: var(--app-gray-color);
+    font-size: 12px;
+  }
+
+  &:hover {
+    background-color: var(--app-hover-bg-color-deeper);
+  }
+}
