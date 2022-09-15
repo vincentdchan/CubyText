@@ -36,6 +36,7 @@ import {
   windowAction,
   exportSnapshot,
   documentOops,
+  openNotebook,
   type WindowsActionRequest,
   type RecoverDocumentRequest,
   type MoveToTrashRequest,
@@ -50,6 +51,7 @@ import {
   type LaunchURLRequest,
   type ExportSnapshotRequest,
   type DocumentOopsRequest,
+  type OpenNotebookRequest,
 } from "@pkg/common/message";
 import { changesetFromMessage } from "blocky-data";
 import { makeDefaultIdGenerator } from "@pkg/main/helpers/idHelper";
@@ -75,8 +77,8 @@ app.setName(appName);
 const createWelcomeWindow = () => {
   const options: BrowserWindowConstructorOptions = {
     title: appName,
-    width: 680,
-    height: 480,
+    width: 720,
+    height: 420,
     resizable: false,
     webPreferences: {
       preload: path.join(__dirname, "..", "preload", "preload.js"),
@@ -90,16 +92,47 @@ const createWelcomeWindow = () => {
     options.trafficLightPosition = { x: 10, y: 16 };
   }
 
-  singleton.browserWindow = new BrowserWindow(options);
+  const win = new BrowserWindow(options);
+  singleton.welcomeWindow = win;
 
   if (import.meta.env.PROD) {
-    singleton.browserWindow.loadFile(
-      path.join(__dirname, "..", "renderer", "index.html"),
-    );
+    win.loadFile(path.join(__dirname, "..", "renderer", "index.html"));
   } else {
-    singleton.browserWindow.loadURL("http://localhost:8666/welcome.html");
+    win.loadURL("http://localhost:8666/welcome.html");
   }
+
+  const disposables: IDisposable[] = [];
+
+  win.on("ready-to-show", () => {
+    logger.info("Ready to show welcome window");
+    disposables.push(listenWelcomeWindowEvents());
+  });
+  win.on("closed", () => {
+    logger.info("Welcome window closed");
+    singleton.welcomeWindow = undefined;
+    flattenDisposable(disposables).dispose();
+    if (!singleton.browserWindow) {
+      app.quit();
+    }
+  });
 };
+
+function listenWelcomeWindowEvents(): IDisposable {
+  const disposables: IDisposable[] = [];
+
+  disposables.push(
+    openNotebook.listenMainIpc(
+      ipcMain,
+      (evt: IpcMainInvokeEvent, req: OpenNotebookRequest) => {
+        createNotebookWindow();
+        singleton.welcomeWindow?.close();
+        return undefined;
+      },
+    ),
+  );
+
+  return flattenDisposable(disposables);
+}
 
 const createNotebookWindow = () => {
   const options: BrowserWindowConstructorOptions = {
@@ -118,15 +151,39 @@ const createNotebookWindow = () => {
     options.trafficLightPosition = { x: 10, y: 16 };
   }
 
-  singleton.browserWindow = new BrowserWindow(options);
+  const win = new BrowserWindow(options);
+  singleton.browserWindow = win;
 
   if (import.meta.env.PROD) {
-    singleton.browserWindow.loadFile(
-      path.join(__dirname, "..", "renderer", "index.html"),
-    );
+    win.loadFile(path.join(__dirname, "..", "renderer", "index.html"));
   } else {
-    singleton.browserWindow.loadURL("http://localhost:8666");
+    win.loadURL("http://localhost:8666");
   }
+
+  const disposables: IDisposable[] = [];
+
+  win.on("ready-to-show", async () => {
+    logger.info("Bind events to Notebook window");
+    const { userDataDir } = singleton;
+    if (!userDataDir) {
+      logger.error("Can not get appDataDir");
+      app.exit(1);
+      return;
+    }
+    createDirIfNotExist(userDataDir);
+    const dbPath = path.join(userDataDir, "notebook.db");
+    logger.info(`Database: ${dbPath}`);
+    await DbService.initLocal(dbPath);
+    disposables.push(listenNotebookMessages());
+    await SearchService.get().init();
+  });
+
+  win.on("closed", () => {
+    logger.info("Notebook window closed");
+    singleton.browserWindow = undefined;
+    flattenDisposable(disposables).dispose();
+    createWelcomeWindow();
+  });
 };
 
 function getAndPrintSystemInfos() {
@@ -178,23 +235,10 @@ function createDirIfNotExist(path: string) {
   }
 }
 
-app.whenReady().then(async () => {
+app.whenReady().then(() => {
   getAndPrintSystemInfos();
-  const { userDataDir } = singleton;
-  if (!userDataDir) {
-    logger.error("Can not get appDataDir");
-    app.exit(1);
-    return;
-  }
-  createDirIfNotExist(userDataDir);
-  const dbPath = path.join(userDataDir, "notebook.db");
-  logger.info(`Database: ${dbPath}`);
-  await DbService.initLocal(dbPath);
   listenAppMessages();
-  listenNotebookMessages();
   createWelcomeWindow();
-  // createNotebookWindow();
-  await SearchService.get().init();
 });
 
 app.on("before-quit", () => {

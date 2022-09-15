@@ -15,7 +15,7 @@ export class MessageDefinition<ReqT, RespT> {
     ipcMain.handle(this.name, handler);
     return {
       dispose: () => {
-        ipcMain.removeListener(this.name, handler);
+        ipcMain.removeHandler(this.name);
       },
     };
   }
@@ -314,6 +314,15 @@ export const documentOops = new MessageDefinition<
   undefined
 >("documentOops");
 
+export interface OpenNotebookRequest {
+  path: string;
+}
+
+export const openNotebook = new MessageDefinition<
+  OpenNotebookRequest,
+  undefined
+>("openNotebook");
+
 /**
  * This array is used to register callbacks.
  * Consider using decorator to do this.
@@ -343,4 +352,5 @@ export const messages: MessageDefinition<any, any>[] = [
   windowAction,
   exportSnapshot,
   documentOops,
+  openNotebook,
 ];

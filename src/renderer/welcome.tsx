@@ -2,10 +2,10 @@ import { render, type ComponentChildren } from "preact";
 import { memo } from "preact/compat";
 import ThemeProvider from "./components/themeProvider";
 import { FontAwesomeIcon } from "./components/fontAwesomeIcon";
+import { openNotebook } from "@pkg/common/message";
 import {
   faFolderOpen,
   faAdd,
-  faFileLines,
   faDatabase,
 } from "@fortawesome/free-solid-svg-icons";
 import IconImage from "./images/icons.png";
@@ -45,12 +45,18 @@ const MainContent = memo(() => {
 
 interface FileListItemProps {
   title?: string;
+  onClick?: JSX.MouseEventHandler<HTMLDivElement>;
+  onDblClick?: JSX.MouseEventHandler<HTMLDivElement>;
   children?: ComponentChildren;
 }
 
-const FileListItem = memo((props: FileListItemProps) => {
+const FileListItem = (props: FileListItemProps) => {
   return (
-    <div className="cuby-file-list-item cuby-cm-noselect">
+    <div
+      className="cuby-file-list-item cuby-cm-noselect"
+      onClick={props.onClick}
+      onDblClick={props.onDblClick}
+    >
       <div className="icon">
         <FontAwesomeIcon icon={faDatabase} />
       </div>
@@ -60,12 +66,15 @@ const FileListItem = memo((props: FileListItemProps) => {
       </div>
     </div>
   );
-});
+};
 
 const FileList = memo(() => {
+  const handleFileDbClick = async () => {
+    await openNotebook.request({ path: "" });
+  };
   return (
     <div className="cuby-file-list">
-      <FileListItem title="Default" />
+      <FileListItem onDblClick={handleFileDbClick} title="Default" />
     </div>
   );
 });
