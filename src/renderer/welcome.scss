@@ -59,6 +59,27 @@
   overflow-y: scroll;
 }
 
+.cuby-file-list-empty-placeholder {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  height: 100%;
+  width: 100%;
+
+  .icon {
+    svg {
+      transform: scale(2);
+    }
+    margin-bottom: 20px;
+  }
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
 .cuby-file-scroll {
   position: absolute;
   top: 0px;

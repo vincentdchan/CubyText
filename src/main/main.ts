@@ -55,6 +55,8 @@ import {
   type ExportSnapshotRequest,
   type DocumentOopsRequest,
   type OpenNotebookRequest,
+  type ReportRecentNotebookRequest,
+  type RecentNotebook,
 } from "@pkg/common/message";
 import { changesetFromMessage } from "blocky-data";
 import { makeDefaultIdGenerator } from "@pkg/main/helpers/idHelper";
@@ -75,10 +77,43 @@ import { BlockyDocument } from "blocky-data";
 import logger, { configure as configureLog } from "./services/logService";
 import { homeId } from "@pkg/common/constants";
 import { flattenDisposable, IDisposable } from "blocky-common/es/disposable";
+import { isString } from "lodash-es";
 
 const appName = "CubyText";
 
 app.setName(appName);
+
+function isFile(path: string): boolean {
+  try {
+    const stat = fs.statSync(path);
+    return stat.isFile();
+  } catch (err) {
+    return false;
+  }
+}
+
+async function insertLegacyNotebookToRecentNotebooks(
+  userDataDir: string,
+  appDbService: AppDbService,
+) {
+  const legacyDbPath = path.join(userDataDir, "notebook.db");
+  if (!isFile(legacyDbPath)) {
+    return;
+  }
+  const exist = await appDbService.get(
+    `SELECT id FROM recent_notebooks WHERE local_path=?`,
+    [legacyDbPath],
+  );
+  if (exist) {
+    return;
+  }
+  const now = new Date().getTime();
+  await appDbService.run(
+    `INSERT INTO recent_notebooks(local_path, last_opened_at)
+    VALUES (?, ?)`,
+    [legacyDbPath, now],
+  );
+}
 
 const createWelcomeWindow = async () => {
   const options: BrowserWindowConstructorOptions = {
@@ -102,6 +137,7 @@ const createWelcomeWindow = async () => {
   const dbPath = path.join(userDataDir, "app_data.db");
   logger.info(`App database: ${dbPath}`);
   const dbService = await AppDbService.init(dbPath);
+  await insertLegacyNotebookToRecentNotebooks(userDataDir, dbService);
 
   if (process.platform === "win32") {
     options.titleBarStyle = "hidden";
@@ -119,7 +155,7 @@ const createWelcomeWindow = async () => {
     win.loadURL("http://localhost:8666/welcome.html");
   }
 
-  const disposables: IDisposable[] = [dbService];
+  const disposables: IDisposable[] = [];
 
   logger.info("Ready to show welcome window");
   disposables.push(listenWelcomeWindowEvents(dbService));
@@ -129,7 +165,8 @@ const createWelcomeWindow = async () => {
     flattenDisposable(disposables).dispose();
   });
 
-  win.on("closed", () => {
+  win.on("closed", async () => {
+    await dbService.close();
     logger.info("Welcome window closed");
     if (!singleton.browserWindow) {
       app.quit();
@@ -139,6 +176,34 @@ const createWelcomeWindow = async () => {
 
 function listenWelcomeWindowEvents(appDbService: AppDbService): IDisposable {
   const disposables: IDisposable[] = [];
+
+  const reportNotebook = async (dbPath: string) => {
+    const exist = await appDbService.get(
+      `SELECT id FROM recent_notebooks WHERE local_path=?`,
+      [dbPath],
+    );
+    const now = new Date().getTime();
+    if (exist) {
+      await appDbService.run(
+        `UPDATE recent_notebooks
+            SET last_opened_at=?
+            WHERE local_path=?`,
+        [now, dbPath],
+      );
+    } else {
+      await appDbService.run(
+        `INSERT INTO
+        recent_notebooks(local_path, last_opened_at) VALUES (?, ?)`,
+        [dbPath, now],
+      );
+    }
+  };
+
+  const reportAndOpenDb = async (dbPath: string) => {
+    await createNotebookWindow(dbPath);
+    await reportNotebook(dbPath);
+    logger.info("Notebook reported:", dbPath);
+  };
 
   disposables.push(
     openNotebook.listenMainIpc(
@@ -157,14 +222,14 @@ function listenWelcomeWindowEvents(appDbService: AppDbService): IDisposable {
                 ],
               },
             );
-            if (result.canceled) {
+            if (result.canceled || !result.filePath) {
               return;
             }
-            await createNotebookWindow();
+            await reportAndOpenDb(result.filePath);
             break;
           }
           case OpenNotebookFlag.OpenPath: {
-            await createNotebookWindow();
+            await reportAndOpenDb(req.path!);
             break;
           }
           case OpenNotebookFlag.SelectFile: {
@@ -179,10 +244,10 @@ function listenWelcomeWindowEvents(appDbService: AppDbService): IDisposable {
                 ],
               },
             );
-            if (result.canceled) {
+            if (result.canceled || result.filePaths.length === 0) {
               return;
             }
-            await createNotebookWindow();
+            await reportAndOpenDb(result.filePaths[0]);
             break;
           }
         }
@@ -198,19 +263,50 @@ function listenWelcomeWindowEvents(appDbService: AppDbService): IDisposable {
           LIMIT 20`,
         [],
       );
+      const data: RecentNotebook[] = rows.map((row) => {
+        let title = "Unnamed";
+        if (isString(row.localPath)) {
+          title = path.basename(row.localPath);
+        }
+        return {
+          ...row,
+          title,
+        };
+      });
       return {
-        data: rows,
+        data,
       };
     }),
-    reportRecentNotebook.listenMainIpc(ipcMain, async () => {
-      return undefined;
-    }),
+    reportRecentNotebook.listenMainIpc(
+      ipcMain,
+      async (evt: IpcMainInvokeEvent, req: ReportRecentNotebookRequest) => {
+        const { localPath } = req;
+        if (!isString(localPath)) {
+          return undefined;
+        }
+        const exist = await appDbService.get(
+          `SELECT id FROM recent_notebooks WHERE local_path=?`,
+          [localPath],
+        );
+        if (exist) {
+          const now = new Date().getTime();
+          await appDbService.run(
+            `UPDATE recent_notebooks
+            SET last_opened_at=?
+            WHERE local_path=?`,
+            [now, localPath],
+          );
+          return;
+        }
+        return undefined;
+      },
+    ),
   );
 
   return flattenDisposable(disposables);
 }
 
-const createNotebookWindow = async () => {
+const createNotebookWindow = async (dbPath: string) => {
   const options: BrowserWindowConstructorOptions = {
     title: appName,
     width: 1024,
@@ -220,16 +316,7 @@ const createNotebookWindow = async () => {
     },
   };
 
-  const { userDataDir } = singleton;
-  if (!userDataDir) {
-    logger.error("Can not get appDataDir");
-    app.exit(1);
-    return;
-  }
-  createDirIfNotExist(userDataDir);
-
-  const dbPath = path.join(userDataDir, "notebook.db");
-  logger.info(`Notebook database: ${dbPath}`);
+  logger.info(`Notebook opening: ${dbPath}`);
   const dbService = await NotebookDbService.initLocal(dbPath);
   const searchService = new SearchService();
   const documentService = new DocumentService({ dbService, searchService });
@@ -268,7 +355,7 @@ const createNotebookWindow = async () => {
     win.loadURL("http://localhost:8666");
   }
 
-  const disposables: IDisposable[] = [dbService];
+  const disposables: IDisposable[] = [];
 
   logger.info("Bind events to Notebook window");
   disposables.push(
@@ -287,7 +374,8 @@ const createNotebookWindow = async () => {
     createWelcomeWindow();
   });
 
-  win.on("closed", () => {
+  win.on("closed", async () => {
+    await dbService.close();
     logger.info("Notebook window closed");
   });
 };
@@ -345,6 +433,11 @@ app.whenReady().then(() => {
   getAndPrintSystemInfos();
   listenAppMessages();
   createWelcomeWindow();
+});
+
+// DO NOT remove this
+app.on("window-all-closed", () => {
+  logger.debug("window all closed");
 });
 
 app.on("before-quit", () => {

@@ -12,6 +12,7 @@ import {
   faFolderOpen,
   faAdd,
   faDatabase,
+  faMartiniGlassEmpty,
 } from "@fortawesome/free-solid-svg-icons";
 import IconImage from "./images/icons.png";
 import "./app.scss";
@@ -66,7 +67,8 @@ const MainContent = memo(() => {
 });
 
 interface FileListItemProps {
-  title?: string;
+  title: string;
+  path: string;
   onClick?: JSX.MouseEventHandler<HTMLDivElement>;
   onDblClick?: JSX.MouseEventHandler<HTMLDivElement>;
   children?: ComponentChildren;
@@ -87,9 +89,7 @@ const FileListItem = (props: FileListItemProps) => {
           <div className="cuby-cm-oneline content">{props.title}</div>
         </div>
         <div className="path">
-          <div className="cuby-cm-oneline content">
-            C:/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-          </div>
+          <div className="cuby-cm-oneline content">{props.path}</div>
         </div>
       </div>
     </div>
@@ -105,12 +105,24 @@ const FileList = memo(() => {
   useEffect(() => {
     fetchData();
   });
-  const handleFileDbClick = async () => {
+  const handleFileDbClick = (path: string) => async () => {
     await openNotebook.request({
-      path: "",
+      path,
       flags: OpenNotebookFlag.OpenPath,
     });
   };
+  if (recentList.length === 0) {
+    return (
+      <div className="cuby-file-list">
+        <div className="cuby-file-list-empty-placeholder cuby-cm-noselect">
+          <div className="icon">
+            <FontAwesomeIcon icon={faMartiniGlassEmpty} />
+          </div>
+          <div>Empty content</div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="cuby-file-list">
       <div className="cuby-file-scroll">
@@ -118,8 +130,9 @@ const FileList = memo(() => {
           {recentList.map((item) => (
             <FileListItem
               key={item.id.toString()}
-              onDblClick={handleFileDbClick}
-              title="Default"
+              onDblClick={handleFileDbClick(item.localPath!)}
+              title={item.title}
+              path={item.localPath!}
             />
           ))}
         </div>
