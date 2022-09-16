@@ -7,21 +7,38 @@ import {
 import { isObject, isString, isUndefined } from "lodash-es";
 import type { OutlineNode } from "@pkg/common/outlineTree";
 import { DocumentService } from "@pkg/main/services/documentService";
+import { DocumentState } from "./documentState";
 
 export interface OutlineGeneratorOptions {
   document: BlockyDocument;
+  documentService: DocumentService;
   referencesCollector?: OutlineNode[];
 }
 
 export class OutlineGenerator {
   #nodeStack: OutlineNode[] = [];
   readonly document: BlockyDocument;
+  readonly documentService: DocumentService;
   constructor(readonly options: OutlineGeneratorOptions) {
     this.document = options.document;
+    this.documentService = options.documentService;
   }
 
   get title(): string {
     return this.document.title.getTextModel("textContent")?.toString() ?? "";
+  }
+
+  static formState(
+    documentState: DocumentState,
+    documentService: DocumentService,
+    referencesCollector?: OutlineNode[],
+  ) {
+    const generator = new OutlineGenerator({
+      document: documentState.state.document,
+      documentService,
+      referencesCollector,
+    });
+    return generator.generate();
   }
 
   async generate(): Promise<OutlineNode> {
@@ -82,7 +99,6 @@ export class OutlineGenerator {
     if (!textModel) {
       return;
     }
-    const documentService = DocumentService.get();
     for (const op of textModel.delta.ops) {
       if (isObject(op.insert)) {
         if (op.insert.type === "reference") {
@@ -90,7 +106,7 @@ export class OutlineGenerator {
           const id = op.insert.docId as string;
 
           // TODO(optimize): batch query
-          const title = await documentService.getDocTitle(id);
+          const title = await this.documentService.getDocTitle(id);
           if (isUndefined(title)) {
             continue;
           }

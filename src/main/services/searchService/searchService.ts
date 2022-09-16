@@ -1,4 +1,3 @@
-import { lazy } from "blocky-common/es/lazy";
 import Fuse from "fuse.js";
 import { type SearchItem } from "@pkg/common/message";
 import { findIndex } from "lodash-es";
@@ -7,12 +6,6 @@ import { FullDatabaseSnapshot } from "@pkg/main/services/documentService";
 import logger from "@pkg/main/services/logService";
 
 export class SearchService {
-  static #init = lazy(() => new SearchService());
-
-  static get(): SearchService {
-    return SearchService.#init();
-  }
-
   #items: SearchItem[];
   #fuse: Fuse<SearchItem>;
 
@@ -24,10 +17,8 @@ export class SearchService {
     });
   }
 
-  async init() {
+  async init(fullSnapshot: FullDatabaseSnapshot) {
     const begin = performance.now();
-
-    const fullSnapshot = await FullDatabaseSnapshot.init();
 
     [...fullSnapshot.documents.values()].forEach((docState) => {
       this.#items.push({

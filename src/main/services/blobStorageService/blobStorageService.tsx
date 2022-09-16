@@ -1,22 +1,23 @@
-import { lazy } from "blocky-common/es/lazy";
 import { DbService } from "@pkg/main/services/dbService";
 import { makeDefaultIdGenerator } from "@pkg/main/helpers/idHelper";
 import logger from "@pkg/main/services/logService";
 
-export class BlobStorageService {
-  static #init = lazy(() => new BlobStorageService());
+export interface BlobStorageServiceOptions {
+  dbService: DbService;
+}
 
-  static get(): BlobStorageService {
-    return BlobStorageService.#init();
+export class BlobStorageService {
+  idHelper = makeDefaultIdGenerator();
+  readonly dbService: DbService;
+
+  constructor(options: BlobStorageServiceOptions) {
+    this.dbService = options.dbService;
   }
 
-  idHelper = makeDefaultIdGenerator();
-
   async store(ownerId: string, buffer: Buffer): Promise<string> {
-    const dbService = DbService.get();
     const blobId = this.idHelper.mkBlobId();
     const now = new Date().getTime();
-    await dbService.run(
+    await this.dbService.run(
       `INSERT INTO blob_storage(
       id, content, size, owner_id, created_at, accessed_at, modified_at)
       VALUES (?, ?, ?, ?, ?, ?, ?)`,
@@ -29,8 +30,7 @@ export class BlobStorageService {
   }
 
   async get(id: string): Promise<Buffer> {
-    const dbService = DbService.get();
-    const row = await dbService.get(
+    const row = await this.dbService.get(
       `SELECT
       content as data
       FROM blob_storage WHERE id=?`,

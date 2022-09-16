@@ -62,7 +62,10 @@ import * as fs from "fs";
 import * as yaml from "js-yaml";
 import { performance } from "perf_hooks";
 import { DbService } from "./services/dbService";
-import { DocumentService } from "./services/documentService";
+import {
+  DocumentService,
+  FullDatabaseSnapshot,
+} from "./services/documentService";
 import { SearchService } from "./services/searchService";
 import { SubscriptionService } from "./services/subscriptionService";
 import { BlobStorageService } from "./services/blobStorageService";
@@ -143,11 +146,11 @@ function listenWelcomeWindowEvents(): IDisposable {
             if (result.canceled) {
               return;
             }
-            createNotebookWindow();
+            await createNotebookWindow();
             break;
           }
           case OpenNotebookFlag.OpenPath: {
-            createNotebookWindow();
+            await createNotebookWindow();
             break;
           }
           case OpenNotebookFlag.SelectFile: {
@@ -165,7 +168,7 @@ function listenWelcomeWindowEvents(): IDisposable {
             if (result.canceled) {
               return;
             }
-            createNotebookWindow();
+            await createNotebookWindow();
             break;
           }
         }
@@ -178,7 +181,7 @@ function listenWelcomeWindowEvents(): IDisposable {
   return flattenDisposable(disposables);
 }
 
-const createNotebookWindow = () => {
+const createNotebookWindow = async () => {
   const options: BrowserWindowConstructorOptions = {
     title: appName,
     width: 1024,
@@ -187,6 +190,38 @@ const createNotebookWindow = () => {
       preload: path.join(__dirname, "..", "preload", "preload.js"),
     },
   };
+
+  const { userDataDir } = singleton;
+  if (!userDataDir) {
+    logger.error("Can not get appDataDir");
+    app.exit(1);
+    return;
+  }
+  createDirIfNotExist(userDataDir);
+
+  const dbPath = path.join(userDataDir, "notebook.db");
+  logger.info(`Database: ${dbPath}`);
+  const dbService = await DbService.initLocal(dbPath);
+  const searchService = new SearchService();
+  const documentService = new DocumentService({ dbService, searchService });
+  const blobStorageService = new BlobStorageService({
+    dbService,
+  });
+
+  const initSnapshot = async () => {
+    try {
+      const fullSnapshot = await FullDatabaseSnapshot.init({
+        dbService,
+        documentService,
+        searchService,
+      });
+      await searchService.init(fullSnapshot);
+    } catch (err) {
+      logger.error("init snapshot failed:", err);
+    }
+  };
+
+  initSnapshot();
 
   if (process.platform === "win32") {
     options.titleBarStyle = "hidden";
@@ -204,29 +239,27 @@ const createNotebookWindow = () => {
     win.loadURL("http://localhost:8666");
   }
 
-  const disposables: IDisposable[] = [];
+  const disposables: IDisposable[] = [dbService];
 
-  win.on("ready-to-show", async () => {
-    logger.info("Bind events to Notebook window");
-    const { userDataDir } = singleton;
-    if (!userDataDir) {
-      logger.error("Can not get appDataDir");
-      app.exit(1);
-      return;
-    }
-    createDirIfNotExist(userDataDir);
-    const dbPath = path.join(userDataDir, "notebook.db");
-    logger.info(`Database: ${dbPath}`);
-    await DbService.initLocal(dbPath);
-    disposables.push(listenNotebookMessages());
-    await SearchService.get().init();
+  logger.info("Bind events to Notebook window");
+  disposables.push(
+    listenNotebookMessages({
+      dbService,
+      documentService,
+      searchService,
+      blobStorageService,
+    }),
+  );
+
+  win.on("close", () => {
+    logger.info("Notebook window closing");
+    singleton.browserWindow = undefined;
+    flattenDisposable(disposables).dispose();
+    createWelcomeWindow();
   });
 
   win.on("closed", () => {
     logger.info("Notebook window closed");
-    singleton.browserWindow = undefined;
-    flattenDisposable(disposables).dispose();
-    createWelcomeWindow();
   });
 };
 
@@ -287,7 +320,6 @@ app.whenReady().then(() => {
 
 app.on("before-quit", () => {
   logger.info("prepare to quit");
-  DbService.get().dispose();
   logger.info("bye bye~");
 });
 
@@ -374,7 +406,19 @@ function listenAppMessages(): IDisposable {
   return flattenDisposable(disposables);
 }
 
-function listenNotebookMessages(): IDisposable {
+interface NotebookMessagesOptions {
+  dbService: DbService;
+  documentService: DocumentService;
+  searchService: SearchService;
+  blobStorageService: BlobStorageService;
+}
+
+function listenNotebookMessages({
+  dbService,
+  documentService,
+  searchService,
+  blobStorageService,
+}: NotebookMessagesOptions): IDisposable {
   const disposables: IDisposable[] = [];
   const idHelper = makeDefaultIdGenerator();
 
@@ -382,7 +426,6 @@ function listenNotebookMessages(): IDisposable {
     openDocumentMessage.listenMainIpc(
       ipcMain,
       async (evt: IpcMainInvokeEvent, req: OpenDocumentRequest) => {
-        const documentService = DocumentService.get();
         const document = await documentService.openDocById(req.id);
         logger.info(`open document: ${req.id}`);
 
@@ -392,14 +435,13 @@ function listenNotebookMessages(): IDisposable {
     createDocumentMessage.listenMainIpc(
       ipcMain,
       async (evt: IpcMainInvokeEvent, req: CreateDocumentRequest) => {
-        const db = DbService.get();
         const newId = idHelper.mkDocId();
         const now = new Date().getTime();
         const document = new BlockyDocument({
           title: req.title,
         });
         const snapshot = JSON.stringify(document.toJSON());
-        await db.run(
+        await dbService.run(
           `INSERT INTO document(id, snapshot, snapshot_version, accessed_at, created_at, modified_at) VALUES
       (?, ?, ?, ?, ?, ?)`,
           [newId, snapshot, 0, now, now, now],
@@ -416,7 +458,6 @@ function listenNotebookMessages(): IDisposable {
     applyChangeset.listenMainIpc(
       ipcMain,
       async (evt: IpcMainInvokeEvent, req: ApplyChangesetRequest) => {
-        const documentService = DocumentService.get();
         const id = await documentService.applyChangeset(
           req.documentId,
           changesetFromMessage(req.changeset),
@@ -429,7 +470,6 @@ function listenNotebookMessages(): IDisposable {
     searchDocuments.listenMainIpc(
       ipcMain,
       async (evt: IpcMainInvokeEvent, req: SearchDocumentsRequest) => {
-        const searchService = SearchService.get();
         const data = searchService.search(req.content);
         return { data };
       },
@@ -437,9 +477,8 @@ function listenNotebookMessages(): IDisposable {
     recentDocuments.listenMainIpc(
       ipcMain,
       async (evt: IpcMainInvokeEvent, req: RecentDocumentsRequest) => {
-        const db = DbService.get();
         const limit = Math.min(100, req.limit ?? 10);
-        const rows = await db.all(
+        const rows = await dbService.all(
           `SELECT
             id as key, title,
             created_at as createdAt, modified_at as modifiedAt
@@ -461,7 +500,6 @@ function listenNotebookMessages(): IDisposable {
     fetchOutline.listenMainIpc(
       ipcMain,
       async (evt: IpcMainInvokeEvent, req: FetchOutlineRequest) => {
-        const documentService = DocumentService.get();
         return {
           outline: await documentService.getOutlineById(req.docId),
         };
@@ -495,7 +533,6 @@ function listenNotebookMessages(): IDisposable {
         if (resp.canceled || resp.filePaths.length === 0) {
           return {};
         }
-        const blobStorageService = BlobStorageService.get();
         const filePath = resp.filePaths[0];
         const filename = path.basename(filePath);
         const begin = performance.now();
@@ -510,7 +547,6 @@ function listenNotebookMessages(): IDisposable {
     getBlob.listenMainIpc(
       ipcMain,
       async (evt: IpcMainInvokeEvent, req: GetBlobRequest) => {
-        const blobStorageService = BlobStorageService.get();
         const data = await blobStorageService.get(req.id);
         return { data };
       },
@@ -525,13 +561,11 @@ function listenNotebookMessages(): IDisposable {
           });
           return { done: false };
         }
-        const documentService = DocumentService.get();
         await documentService.movetoTrash(req.id);
         return { done: true };
       },
     ),
     fetchTrash.listenMainIpc(ipcMain, async () => {
-      const documentService = DocumentService.get();
       const data = await documentService.fetchTrash();
       return {
         data,
@@ -540,7 +574,6 @@ function listenNotebookMessages(): IDisposable {
     recoverDocument.listenMainIpc(
       ipcMain,
       async (evt: IpcMainInvokeEvent, req: RecoverDocumentRequest) => {
-        const documentService = DocumentService.get();
         await documentService.recoverDocument(req.id);
       },
     ),
@@ -549,7 +582,6 @@ function listenNotebookMessages(): IDisposable {
       ipcMain,
       async (evt: IpcMainInvokeEvent, req: GetDocInfoRequest) => {
         const begin = performance.now();
-        const documentService = DocumentService.get();
         const data: SearchItem[] = [];
         for (const id of req.ids) {
           const item = await documentService.getDocInfo(id);
@@ -567,8 +599,6 @@ function listenNotebookMessages(): IDisposable {
     deletePermanently.listenMainIpc(
       ipcMain,
       async (evt: IpcMainInvokeEvent, req: DeletePermanentlyRequest) => {
-        const dbService = DbService.get();
-
         const row = await dbService.get(
           `SELECT title FROM document
       WHERE id=? AND trashed_at IS NOT NULL`,
@@ -579,8 +609,6 @@ function listenNotebookMessages(): IDisposable {
           logger.error(`${req.id} not found, can not delete permanently`);
           return { canceled: true };
         }
-
-        const documentService = DocumentService.get();
 
         const resp = await dialog.showMessageBox(singleton.browserWindow!, {
           message: `Are you sure to delete "${row.title}" permanently?`,
@@ -599,7 +627,6 @@ function listenNotebookMessages(): IDisposable {
       },
     ),
     getGraphInfo.listenMainIpc(ipcMain, async () => {
-      const documentService = DocumentService.get();
       return documentService.computeGraph();
     }),
     executeGlobalCommand.listenMainIpc(
@@ -614,7 +641,6 @@ function listenNotebookMessages(): IDisposable {
     exportSnapshot.listenMainIpc(
       ipcMain,
       async (evt: IpcMainInvokeEvent, req: ExportSnapshotRequest) => {
-        const documentService = DocumentService.get();
         const state = await documentService.getDocumentStateById(req.docId);
         if (!state) {
           return undefined;

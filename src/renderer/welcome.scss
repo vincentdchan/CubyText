@@ -92,14 +92,37 @@
     }
   }
 
+  .detail {
+    flex: 1;
+    padding-right: 12px;
+    padding-top: 12px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
   .title {
     font-size: 14px;
     margin-bottom: 4px;
+    position: relative;
+    width: 100%;
+    height: 18px;
   }
 
   .path {
     color: var(--app-gray-color);
     font-size: 12px;
+    position: relative;
+    width: 100%;
+    height: 16px;
+  }
+
+  .content {
+    position: absolute;
+    width: 100%;;
+    height: 100%;
+    top: 0px;
+    left: 0px;
   }
 
   &:hover {
