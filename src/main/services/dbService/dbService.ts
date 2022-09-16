@@ -1,6 +1,5 @@
 import { Database } from "sqlite3";
 import logger from "@pkg/main/services/logService";
-import type { IDisposable } from "blocky-common/es/disposable";
 import { type DbVersion } from "./version";
 
 export function openDatabase(filename: string): Promise<Database> {
@@ -14,7 +13,7 @@ export function openDatabase(filename: string): Promise<Database> {
   });
 }
 
-export class DbServiceBase implements IDisposable {
+export class DbServiceBase {
   protected constructor(readonly db: Database) {}
 
   protected async prepareDatabase(dbVersions: DbVersion[]) {
@@ -101,8 +100,15 @@ export class DbServiceBase implements IDisposable {
     });
   }
 
-  dispose() {
-    this.db.close();
-    logger.info("db closed~");
+  close(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      logger.info("db closed~");
+      this.db.close((err) => {
+        if (err) {
+          return reject(err);
+        }
+        resolve();
+      });
+    });
   }
 }

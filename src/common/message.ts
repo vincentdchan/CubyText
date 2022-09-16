@@ -341,6 +341,7 @@ export const reportRecentNotebook = new MessageDefinition<
 
 export interface RecentNotebook {
   id: number;
+  title: string;
   localPath?: string;
   lastOpenedAt: number;
 }
