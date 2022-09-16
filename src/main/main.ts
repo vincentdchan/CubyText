@@ -52,6 +52,7 @@ import {
   type ExportSnapshotRequest,
   type DocumentOopsRequest,
   type OpenNotebookRequest,
+  OpenNotebookFlag,
 } from "@pkg/common/message";
 import { changesetFromMessage } from "blocky-data";
 import { makeDefaultIdGenerator } from "@pkg/main/helpers/idHelper";
@@ -104,9 +105,11 @@ const createWelcomeWindow = () => {
   const disposables: IDisposable[] = [];
 
   win.on("ready-to-show", () => {
+    flattenDisposable(disposables).dispose();
     logger.info("Ready to show welcome window");
     disposables.push(listenWelcomeWindowEvents());
   });
+
   win.on("closed", () => {
     logger.info("Welcome window closed");
     singleton.welcomeWindow = undefined;
@@ -123,8 +126,49 @@ function listenWelcomeWindowEvents(): IDisposable {
   disposables.push(
     openNotebook.listenMainIpc(
       ipcMain,
-      (evt: IpcMainInvokeEvent, req: OpenNotebookRequest) => {
-        createNotebookWindow();
+      async (evt: IpcMainInvokeEvent, req: OpenNotebookRequest) => {
+        switch (req.flags) {
+          case OpenNotebookFlag.Create: {
+            const result = await dialog.showSaveDialog(
+              singleton.welcomeWindow!,
+              {
+                filters: [
+                  {
+                    name: "Database",
+                    extensions: ["sqlite", "db"],
+                  },
+                ],
+              },
+            );
+            if (result.canceled) {
+              return;
+            }
+            createNotebookWindow();
+            break;
+          }
+          case OpenNotebookFlag.OpenPath: {
+            createNotebookWindow();
+            break;
+          }
+          case OpenNotebookFlag.SelectFile: {
+            const result = await dialog.showOpenDialog(
+              singleton.welcomeWindow!,
+              {
+                filters: [
+                  {
+                    name: "Database",
+                    extensions: ["sqlite", "db"],
+                  },
+                ],
+              },
+            );
+            if (result.canceled) {
+              return;
+            }
+            createNotebookWindow();
+            break;
+          }
+        }
         singleton.welcomeWindow?.close();
         return undefined;
       },

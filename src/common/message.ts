@@ -314,8 +314,15 @@ export const documentOops = new MessageDefinition<
   undefined
 >("documentOops");
 
+export enum OpenNotebookFlag {
+  Create = 0x01,
+  OpenPath = 0x02,
+  SelectFile = 0x03,
+}
+
 export interface OpenNotebookRequest {
-  path: string;
+  path?: string;
+  flags: OpenNotebookFlag;
 }
 
 export const openNotebook = new MessageDefinition<
