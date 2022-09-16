@@ -149,6 +149,10 @@ const createWelcomeWindow = async () => {
   const win = new BrowserWindow(options);
   singleton.welcomeWindow = win;
 
+  if (process.platform === "linux") {
+    win.setMenu(null);
+  }
+
   if (import.meta.env.PROD) {
     win.loadFile(path.join(__dirname, "..", "renderer", "index.html"));
   } else {
