@@ -16,6 +16,7 @@ import logger from "@pkg/main/services/logService";
 import { OutlineGenerator } from "./outlineGenerator";
 import { debounce, isEqual } from "lodash-es";
 import { SearchService } from "@pkg/main/services/searchService";
+import { DocumentService } from "./documentService";
 
 export async function getChangesetOfDocumentsFromDatabase(
   dbService: DbService,
@@ -45,13 +46,24 @@ export interface DocumentStateInitOptions {
   id: string;
   state: State;
   changesetCount: number;
+  documentService: DocumentService;
+  searchService: SearchService;
 }
 
 export class DocumentState {
   static ChangesetMergeCount = 20;
 
-  static async openFromDatabase(id: string): Promise<DocumentState> {
-    const dbService = DbService.get();
+  static async openFromDatabase({
+    dbService,
+    documentService,
+    searchService,
+    id,
+  }: {
+    dbService: DbService;
+    documentService: DocumentService;
+    searchService: SearchService;
+    id: string;
+  }): Promise<DocumentState> {
     const result = await dbService.get(
       `SELECT
         snapshot,
@@ -79,6 +91,8 @@ export class DocumentState {
       id,
       state,
       changesetCount: changesets.length,
+      documentService,
+      searchService,
     });
     documentState.accessedAt = result.accessedAt;
     documentState.createdAt = result.createdAt;
@@ -93,6 +107,8 @@ export class DocumentState {
 
   readonly id: string;
   readonly state: State;
+  readonly documentService: DocumentService;
+  readonly searchService: SearchService;
   counter = 1;
   changesetCounter = 0;
   accessedAt = 0;
@@ -103,6 +119,8 @@ export class DocumentState {
     this.id = options.id;
     this.state = options.state;
     this.changesetCounter = options.changesetCount;
+    this.documentService = options.documentService;
+    this.searchService = options.searchService;
   }
 
   #pushedOutline: OutlineNode | undefined;
@@ -149,7 +167,7 @@ export class DocumentState {
   }, 500);
 
   reportToSearchService() {
-    SearchService.get().reportItem({
+    this.searchService.reportItem({
       key: this.id,
       title: this.title,
       createdAt: this.createdAt,
@@ -169,6 +187,7 @@ export class DocumentState {
     const generator = new OutlineGenerator({
       document: this.state.document,
       referencesCollector,
+      documentService: this.documentService,
     });
     return generator.generate();
   }

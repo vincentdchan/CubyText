@@ -78,8 +78,14 @@ const FileListItem = (props: FileListItemProps) => {
         <FontAwesomeIcon icon={faDatabase} />
       </div>
       <div className="detail">
-        <div className="title">{props.title}</div>
-        <div className="path">C:/xxxxxxxxxx</div>
+        <div className="title">
+          <div className="cuby-cm-oneline content">{props.title}</div>
+        </div>
+        <div className="path">
+          <div className="cuby-cm-oneline content">
+            C:/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -97,7 +103,10 @@ const FileList = memo(() => {
       <div className="cuby-file-scroll">
         <div className="cuby-file-scroll-relative">
           <FileListItem onDblClick={handleFileDbClick} title="Default" />
-          <FileListItem onDblClick={handleFileDbClick} title="Default" />
+          <FileListItem
+            onDblClick={handleFileDbClick}
+            title="Default xxxxxxxxx xxxxxxxxxxxx"
+          />
           <FileListItem onDblClick={handleFileDbClick} title="Default" />
           <FileListItem onDblClick={handleFileDbClick} title="Default" />
           <FileListItem onDblClick={handleFileDbClick} title="Default" />

@@ -6,6 +6,7 @@ import { app } from "electron";
 import { performance } from "perf_hooks";
 import { isUndefined } from "lodash-es";
 import HomeInitData from "./assets/home_init.json";
+import type { IDisposable } from "blocky-common/es/disposable";
 
 function openDatabase(filename: string): Promise<Database> {
   return new Promise((resolve, reject) => {
@@ -18,23 +19,19 @@ function openDatabase(filename: string): Promise<Database> {
   });
 }
 
-export class DbService {
-  static #instance: DbService | undefined;
-
-  static async initMemory(): Promise<void> {
+export class DbService implements IDisposable {
+  static async initMemory(): Promise<DbService> {
     const db = await openDatabase(":memory:");
-    DbService.#instance = new DbService(db);
-    return await DbService.#instance.initService();
+    const service = new DbService(db);
+    await service.initService();
+    return service;
   }
 
-  static async initLocal(filename: string): Promise<void> {
+  static async initLocal(filename: string): Promise<DbService> {
     const db = await openDatabase(filename);
-    DbService.#instance = new DbService(db);
-    return await DbService.#instance.initService();
-  }
-
-  static get(): DbService {
-    return DbService.#instance!;
+    const service = new DbService(db);
+    await service.initService();
+    return service;
   }
 
   private constructor(readonly db: Database) {}

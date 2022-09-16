@@ -19,14 +19,20 @@ import { FullDatabaseSnapshot } from "./fullDatabaseSnapshot";
 
 const idHelper = makeDefaultIdGenerator();
 
+export interface DocumentServiceInitOptions {
+  dbService: DbService;
+  searchService: SearchService;
+}
+
 export class DocumentService {
-  static #init = lazy(() => new DocumentService());
-
-  static get(): DocumentService {
-    return DocumentService.#init();
-  }
-
   #documents: Map<string, DocumentState> = new Map();
+  readonly dbService: DbService;
+  readonly searchService: SearchService;
+
+  constructor(options: DocumentServiceInitOptions) {
+    this.dbService = options.dbService;
+    this.searchService = options.searchService;
+  }
 
   async getDocumentStateById(id: string): Promise<DocumentState> {
     const doc = this.#documents.get(id);
@@ -34,7 +40,12 @@ export class DocumentService {
       doc.counter++;
       return doc;
     }
-    const documentState = await DocumentState.openFromDatabase(id);
+    const documentState = await DocumentState.openFromDatabase({
+      dbService: this.dbService,
+      searchService: this.searchService,
+      documentService: this,
+      id,
+    });
     this.#documents.set(id, documentState);
     return documentState;
   }
@@ -58,16 +69,15 @@ export class DocumentService {
   }
 
   async getDocTitleEvenTrash(id: string): Promise<string | undefined> {
-    const dbService = DbService.get();
-    const row = await dbService.get(`SELECT title FROM document WHERE id=?`, [
-      id,
-    ]);
+    const row = await this.dbService.get(
+      `SELECT title FROM document WHERE id=?`,
+      [id],
+    );
     return row?.title;
   }
 
   async getDocTitle(id: string): Promise<string | undefined> {
-    const dbService = DbService.get();
-    const row = await dbService.get(
+    const row = await this.dbService.get(
       `SELECT title FROM document WHERE id=? AND trashed_at IS NULL`,
       [id],
     );
@@ -86,25 +96,23 @@ export class DocumentService {
     if (isUndefined(applyResult)) {
       return;
     }
-    const dbService = DbService.get();
     const id = idHelper.mkChangesetId();
     const now = new Date().getTime();
     const promises: Promise<any>[] = [];
 
-    dbService.db.serialize(() => {
+    this.dbService.db.serialize(() => {
       promises.push(
-        dbService.run(
+        this.dbService.run(
           `INSERT INTO changeset(id, version_num, document_id, content, created_at)
           VALUES(?, ?, ?, ?, ?)`,
           [id, 0, docId, JSON.stringify(changesetToMessage(changeset)), now],
         ),
       );
       promises.push(
-        dbService.run(`UPDATE document SET title=?, modified_at=? WHERE id=?`, [
-          applyResult,
-          now,
-          docId,
-        ]),
+        this.dbService.run(
+          `UPDATE document SET title=?, modified_at=? WHERE id=?`,
+          [applyResult, now, docId],
+        ),
       );
     });
 
@@ -123,18 +131,17 @@ export class DocumentService {
 
   async #mergeChangesets(documentState: DocumentState) {
     const begin = performance.now();
-    const dbService = DbService.get();
 
     try {
       const snapshot = documentState.state.document.toJSON();
       const snapshotVersion = documentState.state.appliedVersion;
-      await dbService.run(
+      await this.dbService.run(
         `UPDATE document
         SET snapshot=?, snapshot_version=?
         WHERE id=?`,
         [JSON.stringify(snapshot), snapshotVersion, documentState.id],
       );
-      await dbService.run(`DELETE FROM changeset WHERE document_id=?`, [
+      await this.dbService.run(`DELETE FROM changeset WHERE document_id=?`, [
         documentState.id,
       ]);
 
@@ -169,14 +176,12 @@ export class DocumentService {
 
   async movetoTrash(id: string): Promise<void> {
     this.#documents.delete(id);
-    const dbService = DbService.get();
-    const searchService = SearchService.get();
     const now = new Date().getTime();
-    await dbService.run(`UPDATE document SET trashed_at=? WHERE id=?`, [
+    await this.dbService.run(`UPDATE document SET trashed_at=? WHERE id=?`, [
       now,
       id,
     ]);
-    searchService.deleteItem(id);
+    this.searchService.deleteItem(id);
     logger.info(`${id} moved to trash`);
 
     const subscription = SubscriptionService.get();
@@ -184,8 +189,7 @@ export class DocumentService {
   }
 
   async fetchTrash(): Promise<SearchItem[]> {
-    const dbService = DbService.get();
-    const rows = await dbService.all(
+    const rows = await this.dbService.all(
       `SELECT
         id as key, title,
         accessed_at as accessedAt,
@@ -204,20 +208,20 @@ export class DocumentService {
   }
 
   async recoverDocument(id: string): Promise<void> {
-    const dbService = DbService.get();
-    await dbService.run(`UPDATE document SET trashed_at=NULL WHERE id=?`, [id]);
+    await this.dbService.run(`UPDATE document SET trashed_at=NULL WHERE id=?`, [
+      id,
+    ]);
     logger.info(`${id} recovered`);
   }
 
   async deletePermanently(id: string): Promise<void> {
-    const dbService = DbService.get();
     const begin = performance.now();
-    await dbService.run(
+    await this.dbService.run(
       `DELETE FROM document WHERE id=? AND trashed_at IS NOT NULL`,
       [id],
     );
-    await dbService.run(`DELETE FROM changeset WHERE document_id=?`, [id]);
-    await dbService.run(`DELETE FROM blob_storage WHERE owner_id=?`, [id]);
+    await this.dbService.run(`DELETE FROM changeset WHERE document_id=?`, [id]);
+    await this.dbService.run(`DELETE FROM blob_storage WHERE owner_id=?`, [id]);
     logger.info(
       `${id} is deleted permanently in ${performance.now() - begin}ms`,
     );
@@ -225,7 +229,11 @@ export class DocumentService {
 
   async computeGraph(): Promise<GetGraphInfoResponse> {
     const begin = performance.now();
-    const fullSnapshot = await FullDatabaseSnapshot.init();
+    const fullSnapshot = await FullDatabaseSnapshot.init({
+      dbService: this.dbService,
+      documentService: this,
+      searchService: this.searchService,
+    });
 
     const nodes = [...fullSnapshot.documents.values()].map((item) => {
       let val: number;

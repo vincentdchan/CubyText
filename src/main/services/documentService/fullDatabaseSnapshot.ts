@@ -4,6 +4,8 @@ import { groupBy } from "lodash-es";
 import { DocumentState, documentFromRow } from "./documentState";
 import logger from "@pkg/main/services/logService";
 import { performance } from "perf_hooks";
+import { DocumentService } from "./documentService";
+import { SearchService } from "../searchService";
 
 /**
  * Normally, we don't need the full snapshot
@@ -20,10 +22,17 @@ import { performance } from "perf_hooks";
  */
 
 export class FullDatabaseSnapshot {
-  static async init(): Promise<FullDatabaseSnapshot> {
+  static async init({
+    dbService,
+    documentService,
+    searchService,
+  }: {
+    dbService: DbService;
+    documentService: DocumentService;
+    searchService: SearchService;
+  }): Promise<FullDatabaseSnapshot> {
     const begin = performance.now();
     const snapshot = new FullDatabaseSnapshot();
-    const dbService = DbService.get();
     const documentRows = await dbService.all(
       `SELECT
         id,
@@ -66,6 +75,8 @@ export class FullDatabaseSnapshot {
         id,
         state,
         changesetCount: changesets.length,
+        documentService,
+        searchService,
       });
       documentState.accessedAt = documentRow.accessedAt;
       documentState.createdAt = documentRow.createdAt;
