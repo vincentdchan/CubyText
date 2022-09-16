@@ -6,6 +6,8 @@ import {
   openNotebook,
   OpenNotebookFlag,
   fetchRecentNotebooks,
+  showContextMenuForRecentNotebook,
+  pushRecentNotebooksChanged,
   type RecentNotebook,
 } from "@pkg/common/message";
 import {
@@ -69,17 +71,24 @@ const MainContent = memo(() => {
 interface FileListItemProps {
   title: string;
   path: string;
+  selected?: boolean;
   onClick?: JSX.MouseEventHandler<HTMLDivElement>;
   onDblClick?: JSX.MouseEventHandler<HTMLDivElement>;
+  onContextMenu?: JSX.MouseEventHandler<HTMLDivElement>;
   children?: ComponentChildren;
 }
 
 const FileListItem = (props: FileListItemProps) => {
+  let cls = "cuby-file-list-item cuby-cm-noselect";
+  if (props.selected) {
+    cls += " selected";
+  }
   return (
     <div
-      className="cuby-file-list-item cuby-cm-noselect"
+      className={cls}
       onClick={props.onClick}
       onDblClick={props.onDblClick}
+      onContextMenu={props.onContextMenu}
     >
       <div className="icon">
         <FontAwesomeIcon icon={faDatabase} />
@@ -98,13 +107,21 @@ const FileListItem = (props: FileListItemProps) => {
 
 const FileList = memo(() => {
   const [recentList, setRecentList] = useState<RecentNotebook[]>([]);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
   const fetchData = async () => {
     const resp = await fetchRecentNotebooks.request({});
     setRecentList(resp.data);
   };
   useEffect(() => {
+    const disposable = pushRecentNotebooksChanged.on(() => {
+      fetchData();
+    });
+
+    return () => disposable.dispose();
+  }, []);
+  useEffect(() => {
     fetchData();
-  });
+  }, []);
   const handleFileDbClick = (path: string) => async () => {
     await openNotebook.request({
       path,
@@ -127,10 +144,17 @@ const FileList = memo(() => {
     <div className="cuby-file-list">
       <div className="cuby-file-scroll">
         <div className="cuby-file-scroll-relative">
-          {recentList.map((item) => (
+          {recentList.map((item, index) => (
             <FileListItem
               key={item.id.toString()}
+              selected={selectedIndex === index}
+              onClick={() => setSelectedIndex(index)}
               onDblClick={handleFileDbClick(item.localPath!)}
+              onContextMenu={async () => {
+                await showContextMenuForRecentNotebook.request({
+                  localPath: item.localPath,
+                });
+              }}
               title={item.title}
               path={item.localPath!}
             />

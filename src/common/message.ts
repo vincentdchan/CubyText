@@ -330,15 +330,6 @@ export const openNotebook = new MessageDefinition<
   undefined
 >("openNotebook");
 
-export interface ReportRecentNotebookRequest {
-  localPath?: string;
-}
-
-export const reportRecentNotebook = new MessageDefinition<
-  ReportRecentNotebookRequest,
-  undefined
->("reportRecentNotebook");
-
 export interface RecentNotebook {
   id: number;
   title: string;
@@ -354,6 +345,20 @@ export const fetchRecentNotebooks = new MessageDefinition<
   unknown,
   FetchRecentNotebooksResponse
 >("fetchRecentNotebooks");
+
+export interface ShowContextMenuForRecentNotebookProps {
+  localPath?: string;
+}
+
+export const showContextMenuForRecentNotebook = new MessageDefinition<
+  ShowContextMenuForRecentNotebookProps,
+  undefined
+>("showContextMenuForRecentNotebook");
+
+export const pushRecentNotebooksChanged = new MessageDefinition(
+  "pushRecentNotebooksChanged",
+  true,
+);
 
 /**
  * This array is used to register callbacks.
@@ -386,5 +391,6 @@ export const messages: MessageDefinition<any, any>[] = [
   documentOops,
   openNotebook,
   fetchRecentNotebooks,
-  reportRecentNotebook,
+  showContextMenuForRecentNotebook,
+  pushRecentNotebooksChanged,
 ];

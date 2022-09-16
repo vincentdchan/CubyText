@@ -5,7 +5,9 @@ import {
   IpcMainInvokeEvent,
   dialog,
   shell,
+  Menu,
   type BrowserWindowConstructorOptions,
+  type MenuItemConstructorOptions,
 } from "electron";
 import {
   type OpenDocumentRequest,
@@ -39,7 +41,8 @@ import {
   openNotebook,
   OpenNotebookFlag,
   fetchRecentNotebooks,
-  reportRecentNotebook,
+  showContextMenuForRecentNotebook,
+  pushRecentNotebooksChanged,
   type WindowsActionRequest,
   type RecoverDocumentRequest,
   type MoveToTrashRequest,
@@ -55,8 +58,8 @@ import {
   type ExportSnapshotRequest,
   type DocumentOopsRequest,
   type OpenNotebookRequest,
-  type ReportRecentNotebookRequest,
   type RecentNotebook,
+  type ShowContextMenuForRecentNotebookProps,
 } from "@pkg/common/message";
 import { changesetFromMessage } from "blocky-data";
 import { makeDefaultIdGenerator } from "@pkg/main/helpers/idHelper";
@@ -260,6 +263,7 @@ function listenWelcomeWindowEvents(appDbService: AppDbService): IDisposable {
       },
     ),
     fetchRecentNotebooks.listenMainIpc(ipcMain, async () => {
+      logger.debug(`fetching recent notebook`);
       const rows = await appDbService.all(
         `SELECT id, local_path as localPath, last_opened_at as lastOpenedAt
           FROM recent_notebooks
@@ -281,27 +285,55 @@ function listenWelcomeWindowEvents(appDbService: AppDbService): IDisposable {
         data,
       };
     }),
-    reportRecentNotebook.listenMainIpc(
+    showContextMenuForRecentNotebook.listenMainIpc(
       ipcMain,
-      async (evt: IpcMainInvokeEvent, req: ReportRecentNotebookRequest) => {
-        const { localPath } = req;
-        if (!isString(localPath)) {
-          return undefined;
-        }
-        const exist = await appDbService.get(
-          `SELECT id FROM recent_notebooks WHERE local_path=?`,
-          [localPath],
-        );
-        if (exist) {
-          const now = new Date().getTime();
+      async (
+        event: IpcMainInvokeEvent,
+        req: ShowContextMenuForRecentNotebookProps,
+      ) => {
+        const removePath = async () => {
+          const { localPath } = req;
+          if (!localPath) {
+            return;
+          }
+          logger.info(`Remove recent path: ${localPath}`);
           await appDbService.run(
-            `UPDATE recent_notebooks
-            SET last_opened_at=?
-            WHERE local_path=?`,
-            [now, localPath],
+            `DELETE FROM recent_notebooks WHERE local_path=?`,
+            [req.localPath],
           );
-          return;
-        }
+          pushRecentNotebooksChanged.push(singleton.welcomeWindow!, {});
+        };
+
+        const template: MenuItemConstructorOptions[] = [
+          {
+            label: "Open",
+            click: async () => {
+              await reportAndOpenDb(req.localPath!);
+              singleton.welcomeWindow?.close();
+            },
+          },
+          {
+            label: "Open the folder",
+            click: () => {
+              const { localPath } = req;
+              if (!localPath) {
+                return;
+              }
+              shell.showItemInFolder(localPath);
+            },
+          },
+          { type: "separator" },
+          {
+            label: "Remove item",
+            click: async () => {
+              await removePath();
+            },
+          },
+        ];
+        const menu = Menu.buildFromTemplate(template);
+        menu.popup({
+          window: BrowserWindow.fromWebContents(event.sender)!,
+        });
         return undefined;
       },
     ),
