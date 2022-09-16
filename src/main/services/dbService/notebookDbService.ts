@@ -4,7 +4,7 @@ import { app } from "electron";
 import { performance } from "perf_hooks";
 import { isUndefined } from "lodash-es";
 import logger from "@pkg/main/services/logService";
-import { notebookVersions, type DbVersion } from "./version";
+import { notebookVersions } from "./version";
 import HomeInitData from "./assets/home_init.json";
 
 export class NotebookDbService extends DbServiceBase {
