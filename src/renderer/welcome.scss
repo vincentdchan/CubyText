@@ -146,7 +146,11 @@
     left: 0px;
   }
 
-  &:hover {
-    background-color: var(--app-hover-bg-color-deeper);
+  &.selected {
+    background-color: #FF993A;
+
+    .content {
+      color:  white;
+    }
   }
 }
