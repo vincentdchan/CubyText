@@ -1,8 +1,8 @@
 import { render, type ComponentChildren } from "preact";
-import { memo } from "preact/compat";
+import { memo, useCallback } from "preact/compat";
 import ThemeProvider from "./components/themeProvider";
 import { FontAwesomeIcon } from "./components/fontAwesomeIcon";
-import { openNotebook } from "@pkg/common/message";
+import { openNotebook, OpenNotebookFlag } from "@pkg/common/message";
 import {
   faFolderOpen,
   faAdd,
@@ -14,12 +14,13 @@ import "./welcome.scss";
 
 interface SelectItemProps {
   icon: any;
+  onClick?: JSX.MouseEventHandler<HTMLDivElement>;
   children?: ComponentChildren;
 }
 
 const SelectItem = memo((props: SelectItemProps) => {
   return (
-    <div className="cuby-welcome-item">
+    <div onClick={props.onClick} className="cuby-welcome-item">
       <div className="icon">
         <FontAwesomeIcon icon={props.icon} />
       </div>
@@ -29,6 +30,18 @@ const SelectItem = memo((props: SelectItemProps) => {
 });
 
 const MainContent = memo(() => {
+  const handleCreateNewNotebook = useCallback(async () => {
+    await openNotebook.request({
+      flags: OpenNotebookFlag.Create,
+    });
+  }, []);
+
+  const handleOpenAnExistingNotebook = useCallback(async () => {
+    await openNotebook.request({
+      flags: OpenNotebookFlag.SelectFile,
+    });
+  }, []);
+
   return (
     <div className="cuby-main-content cuby-cm-noselect">
       <div className="logo-container">
@@ -36,8 +49,12 @@ const MainContent = memo(() => {
         <h2>Welcome to CubyText</h2>
       </div>
       <div className="items">
-        <SelectItem icon={faAdd}>Create a new notebook</SelectItem>
-        <SelectItem icon={faFolderOpen}>Open an existing notebook</SelectItem>
+        <SelectItem onClick={handleCreateNewNotebook} icon={faAdd}>
+          Create a new notebook
+        </SelectItem>
+        <SelectItem onClick={handleOpenAnExistingNotebook} icon={faFolderOpen}>
+          Open an existing notebook
+        </SelectItem>
       </div>
     </div>
   );
@@ -70,11 +87,44 @@ const FileListItem = (props: FileListItemProps) => {
 
 const FileList = memo(() => {
   const handleFileDbClick = async () => {
-    await openNotebook.request({ path: "" });
+    await openNotebook.request({
+      path: "",
+      flags: OpenNotebookFlag.OpenPath,
+    });
   };
   return (
     <div className="cuby-file-list">
-      <FileListItem onDblClick={handleFileDbClick} title="Default" />
+      <div className="cuby-file-scroll">
+        <div className="cuby-file-scroll-relative">
+          <FileListItem onDblClick={handleFileDbClick} title="Default" />
+          <FileListItem onDblClick={handleFileDbClick} title="Default" />
+          <FileListItem onDblClick={handleFileDbClick} title="Default" />
+          <FileListItem onDblClick={handleFileDbClick} title="Default" />
+          <FileListItem onDblClick={handleFileDbClick} title="Default" />
+          <FileListItem onDblClick={handleFileDbClick} title="Default" />
+          <FileListItem onDblClick={handleFileDbClick} title="Default" />
+          <FileListItem onDblClick={handleFileDbClick} title="Default" />
+          <FileListItem onDblClick={handleFileDbClick} title="Default" />
+          <FileListItem onDblClick={handleFileDbClick} title="Default" />
+          <FileListItem onDblClick={handleFileDbClick} title="Default" />
+          <FileListItem onDblClick={handleFileDbClick} title="Default" />
+          <FileListItem onDblClick={handleFileDbClick} title="Default" />
+          <FileListItem onDblClick={handleFileDbClick} title="Default" />
+          <FileListItem onDblClick={handleFileDbClick} title="Default" />
+          <FileListItem onDblClick={handleFileDbClick} title="Default" />
+          <FileListItem onDblClick={handleFileDbClick} title="Default" />
+          <FileListItem onDblClick={handleFileDbClick} title="Default" />
+          <FileListItem onDblClick={handleFileDbClick} title="Default" />
+          <FileListItem onDblClick={handleFileDbClick} title="Default" />
+          <FileListItem onDblClick={handleFileDbClick} title="Default" />
+          <FileListItem onDblClick={handleFileDbClick} title="Default" />
+          <FileListItem onDblClick={handleFileDbClick} title="Default" />
+          <FileListItem onDblClick={handleFileDbClick} title="Default" />
+          <FileListItem onDblClick={handleFileDbClick} title="Default" />
+          <FileListItem onDblClick={handleFileDbClick} title="Default" />
+          <FileListItem onDblClick={handleFileDbClick} title="Default" />
+        </div>
+      </div>
     </div>
   );
 });
