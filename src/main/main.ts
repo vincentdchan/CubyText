@@ -139,9 +139,7 @@ const createWelcomeWindow = async () => {
   const dbService = await AppDbService.init(dbPath);
   await insertLegacyNotebookToRecentNotebooks(userDataDir, dbService);
 
-  if (process.platform === "win32") {
-    options.titleBarStyle = "hidden";
-  } else if (process.platform === "darwin") {
+  if (process.platform === "darwin") {
     options.titleBarStyle = "hidden";
     options.trafficLightPosition = { x: 10, y: 16 };
   }
@@ -149,7 +147,7 @@ const createWelcomeWindow = async () => {
   const win = new BrowserWindow(options);
   singleton.welcomeWindow = win;
 
-  if (process.platform === "linux") {
+  if (process.platform === "linux" || process.platform === "win32") {
     win.setMenu(null);
   }
 
@@ -343,9 +341,7 @@ const createNotebookWindow = async (dbPath: string) => {
 
   initSnapshot();
 
-  if (process.platform === "win32") {
-    options.titleBarStyle = "hidden";
-  } else if (process.platform === "darwin") {
+  if (process.platform === "darwin") {
     options.titleBarStyle = "hidden";
     options.trafficLightPosition = { x: 10, y: 16 };
   }

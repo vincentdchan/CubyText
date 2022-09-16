@@ -7,8 +7,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { TabsManager } from "@pkg/renderer/view/tabsManager";
 import mainController from "@pkg/renderer/mainController";
-import { isMac, isWindows, keys } from "@pkg/renderer/platforms";
-import WindowsTitleBar from "@pkg/renderer/components/windowsTitleBar";
+import { isMac, keys } from "@pkg/renderer/platforms";
 import { windowAction } from "@pkg/common/message";
 import { NavbarButton } from "./navbarButton";
 import Navigator from "./navigator";
@@ -69,7 +68,6 @@ class Navbar extends PureComponent<NavbarProps> {
             icon={faTableColumns}
             onClick={this.#handleSplit}
           />
-          {isWindows && <WindowsTitleBar />}
         </div>
       </div>
     );
