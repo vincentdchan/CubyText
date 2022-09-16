@@ -1,5 +1,5 @@
 import { render, type ComponentChildren } from "preact";
-import { memo, useCallback, useEffect, useState } from "preact/compat";
+import { memo, useCallback, useEffect, useState, useRef } from "preact/compat";
 import ThemeProvider from "./components/themeProvider";
 import { FontAwesomeIcon } from "./components/fontAwesomeIcon";
 import {
@@ -17,6 +17,7 @@ import {
   faMartiniGlassEmpty,
 } from "@fortawesome/free-solid-svg-icons";
 import IconImage from "./images/icons.png";
+import { listenWindow } from "blocky-common/es/dom";
 import "./app.scss";
 import "./welcome.scss";
 
@@ -105,9 +106,69 @@ const FileListItem = (props: FileListItemProps) => {
   );
 };
 
+interface SelectablePanelProps {
+  length: number;
+  onSelect?: (index: number) => void;
+}
+
+export function useSelectable(
+  props: SelectablePanelProps,
+): [number, (index: number) => void] {
+  const { length, onSelect } = props;
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const keyboardHandler = useRef<((e: KeyboardEvent) => void) | undefined>(
+    undefined,
+  );
+
+  useEffect(() => {
+    keyboardHandler.current = (e: KeyboardEvent) => {
+      let currentIndex = selectedIndex;
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        if (++currentIndex >= length) {
+          currentIndex = 0;
+        }
+        setSelectedIndex(currentIndex);
+        return;
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        if (--currentIndex < 0) {
+          currentIndex = length - 1;
+        }
+        setSelectedIndex(currentIndex);
+        return;
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        onSelect?.(currentIndex);
+        return;
+      }
+    };
+    return () => (keyboardHandler.current = undefined);
+  }, [length, onSelect]);
+
+  useEffect(() => {
+    const disposable = listenWindow("keydown", (e: KeyboardEvent) => {
+      keyboardHandler.current?.(e);
+    });
+
+    return () => disposable.dispose();
+  }, []);
+
+  return [selectedIndex, setSelectedIndex];
+}
+
 const FileList = memo(() => {
   const [recentList, setRecentList] = useState<RecentNotebook[]>([]);
-  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [selectedIndex, setSelectedIndex] = useSelectable({
+    length: recentList.length,
+    onSelect: async (index: number) => {
+      const item = recentList[index];
+      await openNotebook.request({
+        path: item.localPath!,
+        flags: OpenNotebookFlag.OpenPath,
+      });
+    },
+  });
   const fetchData = async () => {
     const resp = await fetchRecentNotebooks.request({});
     setRecentList(resp.data);
