@@ -37,6 +37,9 @@ import {
   exportSnapshot,
   documentOops,
   openNotebook,
+  OpenNotebookFlag,
+  fetchRecentNotebooks,
+  reportRecentNotebook,
   type WindowsActionRequest,
   type RecoverDocumentRequest,
   type MoveToTrashRequest,
@@ -52,7 +55,6 @@ import {
   type ExportSnapshotRequest,
   type DocumentOopsRequest,
   type OpenNotebookRequest,
-  OpenNotebookFlag,
 } from "@pkg/common/message";
 import { changesetFromMessage } from "blocky-data";
 import { makeDefaultIdGenerator } from "@pkg/main/helpers/idHelper";
@@ -61,7 +63,7 @@ import * as path from "path";
 import * as fs from "fs";
 import * as yaml from "js-yaml";
 import { performance } from "perf_hooks";
-import { DbService } from "./services/dbService";
+import { NotebookDbService, AppDbService } from "./services/dbService";
 import {
   DocumentService,
   FullDatabaseSnapshot,
@@ -78,7 +80,7 @@ const appName = "CubyText";
 
 app.setName(appName);
 
-const createWelcomeWindow = () => {
+const createWelcomeWindow = async () => {
   const options: BrowserWindowConstructorOptions = {
     title: appName,
     width: 720,
@@ -88,6 +90,18 @@ const createWelcomeWindow = () => {
       preload: path.join(__dirname, "..", "preload", "preload.js"),
     },
   };
+
+  const { userDataDir } = singleton;
+  if (!userDataDir) {
+    logger.error("Can not get appDataDir");
+    app.exit(1);
+    return;
+  }
+  createDirIfNotExist(userDataDir);
+
+  const dbPath = path.join(userDataDir, "app_data.db");
+  logger.info(`App database: ${dbPath}`);
+  const dbService = await AppDbService.init(dbPath);
 
   if (process.platform === "win32") {
     options.titleBarStyle = "hidden";
@@ -105,25 +119,25 @@ const createWelcomeWindow = () => {
     win.loadURL("http://localhost:8666/welcome.html");
   }
 
-  const disposables: IDisposable[] = [];
+  const disposables: IDisposable[] = [dbService];
 
-  win.on("ready-to-show", () => {
+  logger.info("Ready to show welcome window");
+  disposables.push(listenWelcomeWindowEvents(dbService));
+
+  win.on("close", () => {
+    singleton.welcomeWindow = undefined;
     flattenDisposable(disposables).dispose();
-    logger.info("Ready to show welcome window");
-    disposables.push(listenWelcomeWindowEvents());
   });
 
   win.on("closed", () => {
     logger.info("Welcome window closed");
-    singleton.welcomeWindow = undefined;
-    flattenDisposable(disposables).dispose();
     if (!singleton.browserWindow) {
       app.quit();
     }
   });
 };
 
-function listenWelcomeWindowEvents(): IDisposable {
+function listenWelcomeWindowEvents(appDbService: AppDbService): IDisposable {
   const disposables: IDisposable[] = [];
 
   disposables.push(
@@ -176,6 +190,21 @@ function listenWelcomeWindowEvents(): IDisposable {
         return undefined;
       },
     ),
+    fetchRecentNotebooks.listenMainIpc(ipcMain, async () => {
+      const rows = await appDbService.all(
+        `SELECT id, local_path as localPath, last_opened_at as lastOpenedAt
+          FROM recent_notebooks
+          ORDER BY last_opened_at DESC
+          LIMIT 20`,
+        [],
+      );
+      return {
+        data: rows,
+      };
+    }),
+    reportRecentNotebook.listenMainIpc(ipcMain, async () => {
+      return undefined;
+    }),
   );
 
   return flattenDisposable(disposables);
@@ -200,8 +229,8 @@ const createNotebookWindow = async () => {
   createDirIfNotExist(userDataDir);
 
   const dbPath = path.join(userDataDir, "notebook.db");
-  logger.info(`Database: ${dbPath}`);
-  const dbService = await DbService.initLocal(dbPath);
+  logger.info(`Notebook database: ${dbPath}`);
+  const dbService = await NotebookDbService.initLocal(dbPath);
   const searchService = new SearchService();
   const documentService = new DocumentService({ dbService, searchService });
   const blobStorageService = new BlobStorageService({
@@ -407,7 +436,7 @@ function listenAppMessages(): IDisposable {
 }
 
 interface NotebookMessagesOptions {
-  dbService: DbService;
+  dbService: NotebookDbService;
   documentService: DocumentService;
   searchService: SearchService;
   blobStorageService: BlobStorageService;

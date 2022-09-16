@@ -4,7 +4,7 @@ export interface DbVersion {
   execute(db: Database): void;
 }
 
-export const versions: DbVersion[] = [
+export const notebookVersions: DbVersion[] = [
   {
     execute(db) {
       db.serialize(() => {
@@ -32,6 +32,19 @@ export const versions: DbVersion[] = [
           created_at INTEGER NOT NULL,
           accessed_at INTEGER NOT NULL,
           modified_at INTEGER NOT NULL)`);
+      });
+    },
+  },
+];
+
+export const appVersions: DbVersion[] = [
+  {
+    execute(db) {
+      db.serialize(() => {
+        db.run(`CREATE TABLE recent_notebooks(
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          local_path TEXT,
+          last_opened_at INTEGER NOT NULL)`);
       });
     },
   },
