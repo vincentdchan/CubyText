@@ -1,14 +1,14 @@
-import { DbService } from "@pkg/main/services/dbService";
+import { NotebookDbService } from "@pkg/main/services/dbService";
 import { makeDefaultIdGenerator } from "@pkg/main/helpers/idHelper";
 import logger from "@pkg/main/services/logService";
 
 export interface BlobStorageServiceOptions {
-  dbService: DbService;
+  dbService: NotebookDbService;
 }
 
 export class BlobStorageService {
   idHelper = makeDefaultIdGenerator();
-  readonly dbService: DbService;
+  readonly dbService: NotebookDbService;
 
   constructor(options: BlobStorageServiceOptions) {
     this.dbService = options.dbService;

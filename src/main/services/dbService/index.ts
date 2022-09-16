@@ -1,1 +1,2 @@
-export { DbService } from "./dbService";
+export { NotebookDbService } from "./notebookDbService";
+export { AppDbService } from "./appDbService";

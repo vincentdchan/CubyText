@@ -1,4 +1,4 @@
-import { DbService } from "@pkg/main/services/dbService";
+import { NotebookDbService } from "@pkg/main/services/dbService";
 import { BlockyDocument, changesetFromMessage, State } from "blocky-data";
 import { groupBy } from "lodash-es";
 import { DocumentState, documentFromRow } from "./documentState";
@@ -27,7 +27,7 @@ export class FullDatabaseSnapshot {
     documentService,
     searchService,
   }: {
-    dbService: DbService;
+    dbService: NotebookDbService;
     documentService: DocumentService;
     searchService: SearchService;
   }): Promise<FullDatabaseSnapshot> {

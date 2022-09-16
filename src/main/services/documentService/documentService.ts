@@ -1,6 +1,5 @@
 import { FinalizedChangeset, changesetToMessage } from "blocky-data";
-import { lazy } from "blocky-common/es/lazy";
-import { DbService } from "@pkg/main/services/dbService";
+import { NotebookDbService } from "@pkg/main/services/dbService";
 import { makeDefaultIdGenerator } from "@pkg/main/helpers/idHelper";
 import {
   type OpenDocumentResponse,
@@ -20,13 +19,13 @@ import { FullDatabaseSnapshot } from "./fullDatabaseSnapshot";
 const idHelper = makeDefaultIdGenerator();
 
 export interface DocumentServiceInitOptions {
-  dbService: DbService;
+  dbService: NotebookDbService;
   searchService: SearchService;
 }
 
 export class DocumentService {
   #documents: Map<string, DocumentState> = new Map();
-  readonly dbService: DbService;
+  readonly dbService: NotebookDbService;
   readonly searchService: SearchService;
 
   constructor(options: DocumentServiceInitOptions) {

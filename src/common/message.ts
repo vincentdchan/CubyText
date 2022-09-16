@@ -330,6 +330,30 @@ export const openNotebook = new MessageDefinition<
   undefined
 >("openNotebook");
 
+export interface ReportRecentNotebookRequest {
+  localPath?: string;
+}
+
+export const reportRecentNotebook = new MessageDefinition<
+  ReportRecentNotebookRequest,
+  undefined
+>("reportRecentNotebook");
+
+export interface RecentNotebook {
+  id: number;
+  localPath?: string;
+  lastOpenedAt: number;
+}
+
+export interface FetchRecentNotebooksResponse {
+  data: RecentNotebook[];
+}
+
+export const fetchRecentNotebooks = new MessageDefinition<
+  unknown,
+  FetchRecentNotebooksResponse
+>("fetchRecentNotebooks");
+
 /**
  * This array is used to register callbacks.
  * Consider using decorator to do this.
@@ -360,4 +384,6 @@ export const messages: MessageDefinition<any, any>[] = [
   exportSnapshot,
   documentOops,
   openNotebook,
+  fetchRecentNotebooks,
+  reportRecentNotebook,
 ];

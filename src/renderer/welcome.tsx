@@ -1,8 +1,13 @@
 import { render, type ComponentChildren } from "preact";
-import { memo, useCallback } from "preact/compat";
+import { memo, useCallback, useEffect, useState } from "preact/compat";
 import ThemeProvider from "./components/themeProvider";
 import { FontAwesomeIcon } from "./components/fontAwesomeIcon";
-import { openNotebook, OpenNotebookFlag } from "@pkg/common/message";
+import {
+  openNotebook,
+  OpenNotebookFlag,
+  fetchRecentNotebooks,
+  type RecentNotebook,
+} from "@pkg/common/message";
 import {
   faFolderOpen,
   faAdd,
@@ -92,6 +97,14 @@ const FileListItem = (props: FileListItemProps) => {
 };
 
 const FileList = memo(() => {
+  const [recentList, setRecentList] = useState<RecentNotebook[]>([]);
+  const fetchData = async () => {
+    const resp = await fetchRecentNotebooks.request({});
+    setRecentList(resp.data);
+  };
+  useEffect(() => {
+    fetchData();
+  });
   const handleFileDbClick = async () => {
     await openNotebook.request({
       path: "",
@@ -102,36 +115,13 @@ const FileList = memo(() => {
     <div className="cuby-file-list">
       <div className="cuby-file-scroll">
         <div className="cuby-file-scroll-relative">
-          <FileListItem onDblClick={handleFileDbClick} title="Default" />
-          <FileListItem
-            onDblClick={handleFileDbClick}
-            title="Default xxxxxxxxx xxxxxxxxxxxx"
-          />
-          <FileListItem onDblClick={handleFileDbClick} title="Default" />
-          <FileListItem onDblClick={handleFileDbClick} title="Default" />
-          <FileListItem onDblClick={handleFileDbClick} title="Default" />
-          <FileListItem onDblClick={handleFileDbClick} title="Default" />
-          <FileListItem onDblClick={handleFileDbClick} title="Default" />
-          <FileListItem onDblClick={handleFileDbClick} title="Default" />
-          <FileListItem onDblClick={handleFileDbClick} title="Default" />
-          <FileListItem onDblClick={handleFileDbClick} title="Default" />
-          <FileListItem onDblClick={handleFileDbClick} title="Default" />
-          <FileListItem onDblClick={handleFileDbClick} title="Default" />
-          <FileListItem onDblClick={handleFileDbClick} title="Default" />
-          <FileListItem onDblClick={handleFileDbClick} title="Default" />
-          <FileListItem onDblClick={handleFileDbClick} title="Default" />
-          <FileListItem onDblClick={handleFileDbClick} title="Default" />
-          <FileListItem onDblClick={handleFileDbClick} title="Default" />
-          <FileListItem onDblClick={handleFileDbClick} title="Default" />
-          <FileListItem onDblClick={handleFileDbClick} title="Default" />
-          <FileListItem onDblClick={handleFileDbClick} title="Default" />
-          <FileListItem onDblClick={handleFileDbClick} title="Default" />
-          <FileListItem onDblClick={handleFileDbClick} title="Default" />
-          <FileListItem onDblClick={handleFileDbClick} title="Default" />
-          <FileListItem onDblClick={handleFileDbClick} title="Default" />
-          <FileListItem onDblClick={handleFileDbClick} title="Default" />
-          <FileListItem onDblClick={handleFileDbClick} title="Default" />
-          <FileListItem onDblClick={handleFileDbClick} title="Default" />
+          {recentList.map((item) => (
+            <FileListItem
+              key={item.id.toString()}
+              onDblClick={handleFileDbClick}
+              title="Default"
+            />
+          ))}
         </div>
       </div>
     </div>

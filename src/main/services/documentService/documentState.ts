@@ -5,7 +5,7 @@ import {
   documentFromJsonNode,
   changesetFromMessage,
 } from "blocky-data";
-import { DbService } from "@pkg/main/services/dbService";
+import { NotebookDbService } from "@pkg/main/services/dbService";
 import {
   type OpenDocumentResponse,
   pushOutlineChanged,
@@ -19,7 +19,7 @@ import { SearchService } from "@pkg/main/services/searchService";
 import { DocumentService } from "./documentService";
 
 export async function getChangesetOfDocumentsFromDatabase(
-  dbService: DbService,
+  dbService: NotebookDbService,
   id: string,
 ): Promise<FinalizedChangeset[]> {
   const rows = await dbService.all(
@@ -59,7 +59,7 @@ export class DocumentState {
     searchService,
     id,
   }: {
-    dbService: DbService;
+    dbService: NotebookDbService;
     documentService: DocumentService;
     searchService: SearchService;
     id: string;
