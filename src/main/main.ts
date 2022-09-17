@@ -753,6 +753,7 @@ function listenNotebookMessages({
       ipcMain,
       async (evt: IpcMainInvokeEvent, req: RecoverDocumentRequest) => {
         await documentService.recoverDocument(req.id);
+        DocListSubscriptionService.get().broadcast();
       },
     ),
     // TODO: optimize

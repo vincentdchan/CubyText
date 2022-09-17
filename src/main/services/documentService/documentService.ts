@@ -10,7 +10,10 @@ import type { OutlineNode } from "@pkg/common/outlineTree";
 import logger from "@pkg/main/services/logService";
 import { isUndefined } from "lodash-es";
 import { SearchService } from "@pkg/main/services/searchService";
-import { DocContentSubscriptionService } from "@pkg/main/services/subscriptionService";
+import {
+  DocContentSubscriptionService,
+  DocListSubscriptionService,
+} from "@pkg/main/services/subscriptionService";
 import { performance } from "perf_hooks";
 import { homeId } from "@pkg/common/constants";
 import { DocumentState } from "./documentState";
@@ -110,7 +113,7 @@ export class DocumentService {
       promises.push(
         this.dbService.run(
           `UPDATE document SET title=?, modified_at=? WHERE id=?`,
-          [applyResult, now, docId],
+          [applyResult.title, now, docId],
         ),
       );
     });
@@ -120,6 +123,10 @@ export class DocumentService {
     logger.debug(`Changeset ${id} applied on ${docId}`);
     const subscription = DocContentSubscriptionService.get();
     subscription.broadcastChangeset(docId, changeset);
+
+    if (applyResult.changed) {
+      DocListSubscriptionService.get().broadcast();
+    }
 
     if (documentState.changesetCounter >= DocumentState.ChangesetMergeCount) {
       this.#mergeChangesets(documentState); // ignore the result
