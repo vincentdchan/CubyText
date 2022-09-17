@@ -8,6 +8,7 @@ import {
   Menu,
   type BrowserWindowConstructorOptions,
   type MenuItemConstructorOptions,
+  Event,
 } from "electron";
 import {
   openDocumentMessage,
@@ -208,6 +209,7 @@ function listenWelcomeWindowEvents(appDbService: AppDbService): IDisposable {
         [dbPath, now],
       );
     }
+    app.addRecentDocument(dbPath);
   };
 
   const reportAndOpenDb = async (dbPath: string) => {
@@ -416,9 +418,13 @@ const createNotebookWindow = async (dbPath: string) => {
 
   win.on("close", () => {
     logger.info("Notebook window closing");
-    singleton.browserWindow = undefined;
+    if (singleton.browserWindow === win) {
+      singleton.browserWindow = undefined;
+    }
     flattenDisposable(disposables).dispose();
-    createWelcomeWindow();
+    if (singleton.welcomeWindow === undefined) {
+      createWelcomeWindow();
+    }
   });
 
   win.on("closed", async () => {
@@ -483,7 +489,8 @@ app.whenReady().then(() => {
 });
 
 // DO NOT remove this
-app.on("window-all-closed", () => {
+app.on("window-all-closed", (e: Event) => {
+  e.preventDefault();
   logger.debug("window all closed");
 });
 
@@ -883,3 +890,14 @@ function listenNotebookMessages({
 
   return flattenDisposable(disposables);
 }
+
+app.on("open-file", (event: Event, path: string) => {
+  logger.info("Open file request from OS:", path);
+  const { welcomeWindow, browserWindow } = singleton;
+  welcomeWindow?.close();
+  browserWindow?.close();
+  singleton.welcomeWindow = undefined;
+  singleton.browserWindow = undefined;
+
+  createNotebookWindow(path);
+});
