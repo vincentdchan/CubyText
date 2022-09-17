@@ -28,6 +28,12 @@ export default defineConfig({
   build: {
     target: "esnext",
     outDir: "dist/renderer",
+    rollupOptions: {
+      input: {
+        index: "./index.html",
+        welcome: "./welcome.html",
+      },
+    },
   },
   optimizeDeps: {
     exclude: ["blocky-common", "blocky-core", "blocky-preact"],

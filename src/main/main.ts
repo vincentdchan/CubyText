@@ -155,7 +155,7 @@ const createWelcomeWindow = async () => {
   }
 
   if (import.meta.env.PROD) {
-    win.loadFile(path.join(__dirname, "..", "renderer", "index.html"));
+    win.loadFile(path.join(__dirname, "..", "renderer", "welcome.html"));
   } else {
     win.loadURL("http://localhost:8666/welcome.html");
   }
