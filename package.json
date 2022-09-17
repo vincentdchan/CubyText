@@ -1,6 +1,6 @@
 {
   "name": "cuby-text",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "dist/main/main.js",
   "author": "Vincent Chan",
   "license": "MIT",
