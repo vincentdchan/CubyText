@@ -1,18 +1,17 @@
 import { ComponentChildren, JSX } from "preact";
-import { useMemo, useCallback } from "preact/hooks";
+import { useCallback, useRef, useEffect } from "preact/hooks";
 import { PureComponent } from "preact/compat";
 import { type BlockElement, Changeset } from "blocky-data";
 import { type EditorController } from "blocky-core";
 import DocumentList, {
-  type DataProvider,
   type SourceKeys,
 } from "@pkg/renderer/components/documentList";
+import { DataProvider } from "@pkg/renderer/blocks/explorerBlock/dataProviders";
 import { isUndefined } from "lodash-es";
 import { RecentDataProvider, TrashDataProvider } from "./dataProviders";
 import { faTrash, faFileLines } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@pkg/renderer/components/fontAwesomeIcon";
 import "./explorerBlock.scss";
-import { useBlockActive } from "blocky-preact";
 
 export interface ExplorerBlockProps {
   blockElement: BlockElement;
@@ -21,15 +20,18 @@ export interface ExplorerBlockProps {
 
 export function ExplorerBlock(props: ExplorerBlockProps) {
   const nextSource = props.blockElement.getAttribute("source");
-  const blockActive = useBlockActive({
-    blockId: props.blockElement.id,
-    controller: props.controller,
-  });
-  const dataProvider = useMemo<DataProvider | undefined>(() => {
-    if (nextSource === "recent") return new RecentDataProvider();
-    if (nextSource === "trash") return new TrashDataProvider();
-    return undefined;
-  }, [nextSource]);
+  const dataProvider = useRef<DataProvider | undefined>(undefined);
+  const blockId = props.blockElement.id;
+
+  useEffect(() => {
+    let newDataProvider: DataProvider;
+    if (nextSource === "recent") {
+      newDataProvider = new RecentDataProvider(blockId);
+    } else if (nextSource === "trash") {
+      newDataProvider = new TrashDataProvider(blockId);
+    }
+    return () => newDataProvider.dispose();
+  }, [nextSource, blockId]);
 
   const handleSelectProvider = useCallback(
     (key?: SourceKeys) => {
@@ -42,7 +44,7 @@ export function ExplorerBlock(props: ExplorerBlockProps) {
     [props.controller, props.blockElement],
   );
 
-  if (isUndefined(dataProvider)) {
+  if (isUndefined(dataProvider.current)) {
     return <ExplorerSelector onSelect={handleSelectProvider} />;
   }
   return (
@@ -50,8 +52,7 @@ export function ExplorerBlock(props: ExplorerBlockProps) {
       style={{
         height: 260,
       }}
-      active={blockActive}
-      dataProvider={dataProvider}
+      dataProvider={dataProvider.current}
       source={nextSource}
     />
   );
@@ -110,12 +111,23 @@ function DataSourceItem(props: DataSourceItemProps) {
   );
 }
 
-export class RecentBlock extends PureComponent {
-  #provider = new RecentDataProvider();
+export interface RecentBlockProps {
+  blockId: string;
+}
+
+export class RecentBlock extends PureComponent<RecentBlockProps> {
+  #provider: RecentDataProvider;
+
+  constructor(props: RecentBlockProps) {
+    super(props);
+    this.#provider = new RecentDataProvider(props.blockId);
+  }
 
   render() {
-    return (
-      <DocumentList source="recent" dataProvider={this.#provider} active />
-    );
+    return <DocumentList source="recent" dataProvider={this.#provider} />;
+  }
+
+  componentWillUnmount(): void {
+    this.#provider.dispose();
   }
 }

@@ -2,6 +2,7 @@ import { lazy } from "blocky-common/es/lazy";
 import { pushDocListChanged } from "@pkg/common/message";
 import logger from "@pkg/main/services/logService";
 import singleton from "@pkg/main/singleton";
+import { debounce } from "lodash-es";
 
 export class DocListSubscriptionService {
   static #init = lazy(() => new DocListSubscriptionService());
@@ -22,12 +23,12 @@ export class DocListSubscriptionService {
     this.#subscriptionSet.delete(subId);
   }
 
-  broadcast() {
+  broadcast = debounce(() => {
     for (const subId of this.#subscriptionSet) {
       pushDocListChanged.push(singleton.browserWindow!, { subId });
     }
     logger.debug(
       `Broadcast list change to ${this.#subscriptionSet.size} clients`,
     );
-  }
+  }, 300);
 }

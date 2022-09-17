@@ -609,6 +609,7 @@ function listenNotebookMessages({
         logger.info(
           `create new page: ${newId} with title: "${req.title ?? ""}" ~`,
         );
+        DocListSubscriptionService.get().broadcast();
         return {
           id: newId,
         };
@@ -738,6 +739,7 @@ function listenNotebookMessages({
           return { done: false };
         }
         await documentService.movetoTrash(req.id);
+        DocListSubscriptionService.get().broadcast();
         return { done: true };
       },
     ),
@@ -797,6 +799,7 @@ function listenNotebookMessages({
         }
         logger.debug(`delete ${req.id} resp:`, resp);
         documentService.deletePermanently(req.id);
+        DocListSubscriptionService.get().broadcast();
         return {
           canceled: false,
         };

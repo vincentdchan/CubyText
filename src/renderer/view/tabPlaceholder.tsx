@@ -27,6 +27,7 @@ export class TabPlaceholderRenderer extends TabDelegate {
         onGoHome={this.#handleGoHome}
         onCreatePage={() => this.onCreateNewPage.emit()}
         onOpenPage={() => mainController.openQuickSearchPanel()}
+        tabId={this.id}
       />,
       this.container,
     );
