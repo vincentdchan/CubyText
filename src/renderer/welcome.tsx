@@ -18,6 +18,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import IconImage from "./images/icons.png";
 import { listenWindow } from "blocky-common/es/dom";
+import { isUndefined } from "lodash-es";
 import "./app.scss";
 import "./welcome.scss";
 
@@ -158,10 +159,15 @@ export function useSelectable(
 }
 
 const FileList = memo(() => {
-  const [recentList, setRecentList] = useState<RecentNotebook[]>([]);
+  const [recentList, setRecentList] = useState<RecentNotebook[] | undefined>(
+    undefined,
+  );
   const [selectedIndex, setSelectedIndex] = useSelectable({
-    length: recentList.length,
+    length: recentList?.length ?? 0,
     onSelect: async (index: number) => {
+      if (isUndefined(recentList)) {
+        return;
+      }
       const item = recentList[index];
       await openNotebook.request({
         path: item.localPath!,
@@ -189,6 +195,9 @@ const FileList = memo(() => {
       flags: OpenNotebookFlag.OpenPath,
     });
   };
+  if (isUndefined(recentList)) {
+    return <div className="cuby-file-list"></div>;
+  }
   if (recentList.length === 0) {
     return (
       <div className="cuby-file-list">
