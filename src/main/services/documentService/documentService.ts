@@ -10,7 +10,7 @@ import type { OutlineNode } from "@pkg/common/outlineTree";
 import logger from "@pkg/main/services/logService";
 import { isUndefined } from "lodash-es";
 import { SearchService } from "@pkg/main/services/searchService";
-import { SubscriptionService } from "@pkg/main/services/subscriptionService";
+import { DocContentSubscriptionService } from "@pkg/main/services/subscriptionService";
 import { performance } from "perf_hooks";
 import { homeId } from "@pkg/common/constants";
 import { DocumentState } from "./documentState";
@@ -118,7 +118,7 @@ export class DocumentService {
     await Promise.all(promises);
 
     logger.debug(`Changeset ${id} applied on ${docId}`);
-    const subscription = SubscriptionService.get();
+    const subscription = DocContentSubscriptionService.get();
     subscription.broadcastChangeset(docId, changeset);
 
     if (documentState.changesetCounter >= DocumentState.ChangesetMergeCount) {
@@ -183,7 +183,7 @@ export class DocumentService {
     this.searchService.deleteItem(id);
     logger.info(`${id} moved to trash`);
 
-    const subscription = SubscriptionService.get();
+    const subscription = DocContentSubscriptionService.get();
     subscription.broadcastTrash(id);
   }
 

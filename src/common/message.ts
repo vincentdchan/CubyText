@@ -148,19 +148,24 @@ export interface SubscribeDocChangedRequest {
   docId: string;
 }
 
-export const subscribeDocChanged = new MessageDefinition<
+export const subscribeDocContentChanged = new MessageDefinition<
   SubscribeDocChangedRequest,
   unknown
->("subscribeDocChanged");
+>("subscribeDocContentChanged");
 
 export interface UnsubscribeDocChangedRequest {
   subId: string;
 }
 
-export const unsubscribeDocChanged = new MessageDefinition<
+export const unsubscribeDocContentChanged = new MessageDefinition<
   UnsubscribeDocChangedRequest,
   unknown
->("unsubscribeDocChanged");
+>("unsubscribeDocContentChanged");
+
+export const pushDocContentChangedMessage = new MessageDefinition<
+  PushSubscriptionMessage,
+  unknown
+>("pushDocContentChangedMessage", true);
 
 export interface PushSubscriptionMessage {
   subId: string;
@@ -168,10 +173,28 @@ export interface PushSubscriptionMessage {
   trashed?: boolean;
 }
 
-export const pushSubscriptionMessage = new MessageDefinition<
-  PushSubscriptionMessage,
-  unknown
->("pushSubscriptionMessage", true);
+export interface SubscribeDocListChanged {
+  subId: string;
+}
+
+export const subscribeDocListChanged = new MessageDefinition<
+  SubscribeDocListChanged,
+  undefined
+>("subscribeDocListChanged");
+
+export const unsubscribeDocListChanged = new MessageDefinition<
+  SubscribeDocListChanged,
+  undefined
+>("unsubscribeDocListChanged");
+
+export interface PushDocListChanged {
+  subId: string;
+}
+
+export const pushDocListChanged = new MessageDefinition<
+  PushDocListChanged,
+  undefined
+>("pushDocListChanged", true);
 
 export interface SelectAndUploadImageRequest {
   ownerId: string;
@@ -373,9 +396,12 @@ export const messages: MessageDefinition<any, any>[] = [
   fetchOutline,
   pushOutlineChanged,
   fetchCurrentTheme,
-  subscribeDocChanged,
-  unsubscribeDocChanged,
-  pushSubscriptionMessage,
+  subscribeDocContentChanged,
+  unsubscribeDocContentChanged,
+  pushDocContentChangedMessage,
+  subscribeDocListChanged,
+  unsubscribeDocListChanged,
+  pushDocListChanged,
   selectAndUploadImageMessage,
   getBlob,
   moveToTrash,

@@ -2,19 +2,19 @@ import { lazy } from "blocky-common/es/lazy";
 import logger from "@pkg/main/services/logService";
 import { isUndefined } from "lodash-es";
 import singleton from "@pkg/main/singleton";
-import { pushSubscriptionMessage } from "@pkg/common/message";
+import { pushDocContentChangedMessage } from "@pkg/common/message";
 import { changesetToMessage, FinalizedChangeset } from "blocky-data";
 
-export class SubscriptionService {
+export class DocContentSubscriptionService {
   /**
    * doc id -> subId
    */
   #subscriptionMap: Map<string, string[]> = new Map();
 
-  static #init = lazy(() => new SubscriptionService());
+  static #init = lazy(() => new DocContentSubscriptionService());
 
-  static get(): SubscriptionService {
-    return SubscriptionService.#init();
+  static get(): DocContentSubscriptionService {
+    return DocContentSubscriptionService.#init();
   }
 
   subscribe(subId: string, docId: string) {
@@ -28,7 +28,7 @@ export class SubscriptionService {
   }
 
   unsubscribe(subId: string) {
-    logger.info(`unsubscribed: ${subId}`);
+    logger.info(`Unsubscribed doc content: ${subId}`);
     const entries = [...this.#subscriptionMap.entries()];
     for (const [docId, subscriptionList] of entries) {
       if (subscriptionList.indexOf(subId) >= 0) {
@@ -50,12 +50,12 @@ export class SubscriptionService {
       return;
     }
     for (const subId of subscriptionList) {
-      pushSubscriptionMessage.push(singleton.browserWindow, {
+      pushDocContentChangedMessage.push(singleton.browserWindow, {
         subId,
         changeset: changesetToMessage(changeset),
       });
     }
-    logger.debug(`broadcast to ${subscriptionList.length} clients`);
+    logger.debug(`Broadcast changeset to ${subscriptionList.length} clients`);
   }
 
   broadcastTrash(docId: string) {
@@ -64,7 +64,7 @@ export class SubscriptionService {
       return;
     }
     for (const subId of subscriptionList) {
-      pushSubscriptionMessage.push(singleton.browserWindow, {
+      pushDocContentChangedMessage.push(singleton.browserWindow, {
         subId,
         trashed: true,
       });

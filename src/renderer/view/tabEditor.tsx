@@ -29,12 +29,12 @@ import makeStyledTextPlugin from "blocky-core/dist/plugins/styledTextPlugin";
 import makeCodeTextPlugin from "blocky-core/dist/plugins/codeTextPlugin";
 import makeBulletListPlugin from "blocky-core/dist/plugins/bulletListPlugin";
 import makeHeadingsPlugin from "blocky-core/dist/plugins/headingsPlugin";
-import { DocChangeObserver } from "./docChangeObserver";
+import { DocChangeObserver } from "@pkg/renderer/helpers/docChangeObserver";
 import { TabDelegate } from "./tabDelegate";
-import "blocky-core/css/styled-text-plugin.css";
-import "blocky-core/css/blocky-core.css";
 import { homeId } from "@pkg/common/constants";
 import { TabsManager } from "./tabsManager";
+import "blocky-core/css/styled-text-plugin.css";
+import "blocky-core/css/blocky-core.css";
 
 function makeEditorPlugins(): IPlugin[] {
   return [
