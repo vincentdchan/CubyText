@@ -5,19 +5,14 @@ import mainController from "@pkg/renderer/mainController";
 import { FontAwesomeIcon } from "@pkg/renderer/components/fontAwesomeIcon";
 import { faWineGlassEmpty } from "@fortawesome/free-solid-svg-icons";
 import { DocItem } from "./docItem";
+import type { DataProvider } from "@pkg/renderer/blocks/explorerBlock/dataProviders";
 import "./documentList.scss";
-
-export interface DataProvider {
-  get name(): string;
-  request(): Promise<SearchItem[]>;
-}
 
 export type SourceKeys = "recent" | "trash";
 
 export interface DocumentListProps {
   source: SourceKeys;
   dataProvider: DataProvider;
-  active: boolean;
   style?: JSX.CSSProperties;
 }
 
@@ -33,14 +28,12 @@ function DocumentList(props: DocumentListProps) {
     setDocuments(documents);
   };
 
-  const isFirst = useRef<boolean>(true);
+  const { dataProvider } = props;
 
   useEffect(() => {
-    if (props.active || isFirst) {
-      fetchRecentDocuments();
-    }
-    isFirst.current = false;
-  }, [props.dataProvider, props.active]);
+    fetchRecentDocuments();
+    dataProvider.observer.updated.on(() => fetchRecentDocuments());
+  }, [dataProvider]);
 
   const openSearchItem = (item: SearchItem) => {
     mainController.openDocOnActiveTab(item.key);

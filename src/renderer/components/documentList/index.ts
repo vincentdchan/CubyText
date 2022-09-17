@@ -1,6 +1,3 @@
-import DocumentList, {
-  type DataProvider,
-  type SourceKeys,
-} from "./documentList";
+import DocumentList, { type SourceKeys } from "./documentList";
 
-export { DocumentList as default, type DataProvider, type SourceKeys };
+export { DocumentList as default, type SourceKeys };

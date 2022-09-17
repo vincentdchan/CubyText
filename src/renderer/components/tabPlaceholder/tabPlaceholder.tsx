@@ -8,6 +8,7 @@ import Tooltip from "@pkg/renderer/components/tooltip";
 import "./tabPlaceholder.scss";
 
 export interface TabPlaceholderProps {
+  tabId: string;
   onGoHome?: () => void;
   onCreatePage?: () => void;
   onOpenPage?: () => void;
@@ -61,7 +62,7 @@ class TabPlaceholder extends Component<TabPlaceholderProps> {
           </div>
           <h3>Recent documents</h3>
           <div className="recent-container">
-            <RecentBlock />
+            <RecentBlock blockId={props.tabId} />
           </div>
         </div>
       </div>
