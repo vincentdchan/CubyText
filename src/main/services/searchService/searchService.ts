@@ -46,7 +46,7 @@ export class SearchService {
 
   reportItem(searchItem: SearchItem) {
     const index = findIndex(this.#items, (item) => item.key === searchItem.key);
-    logger.debug("report:", searchItem.title, "index", index);
+    logger.debug("report search item:", searchItem.title, "index", index);
 
     if (index >= 0) {
       this.#fuse.removeAt(index);

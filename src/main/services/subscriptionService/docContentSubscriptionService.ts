@@ -1,4 +1,3 @@
-import { lazy } from "blocky-common/es/lazy";
 import logger from "@pkg/main/services/logService";
 import { isUndefined } from "lodash-es";
 import singleton from "@pkg/main/singleton";
@@ -10,12 +9,6 @@ export class DocContentSubscriptionService {
    * doc id -> subId
    */
   #subscriptionMap: Map<string, string[]> = new Map();
-
-  static #init = lazy(() => new DocContentSubscriptionService());
-
-  static get(): DocContentSubscriptionService {
-    return DocContentSubscriptionService.#init();
-  }
 
   subscribe(subId: string, docId: string) {
     logger.info(`Doc ${docId} subscribed by ${subId}`);

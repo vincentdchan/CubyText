@@ -1,16 +1,9 @@
-import { lazy } from "blocky-common/es/lazy";
 import { pushDocListChanged } from "@pkg/common/message";
 import logger from "@pkg/main/services/logService";
 import singleton from "@pkg/main/singleton";
 import { debounce } from "lodash-es";
 
 export class DocListSubscriptionService {
-  static #init = lazy(() => new DocListSubscriptionService());
-
-  static get(): DocListSubscriptionService {
-    return DocListSubscriptionService.#init();
-  }
-
   #subscriptionSet: Set<string> = new Set();
 
   subscribe(subId: string) {

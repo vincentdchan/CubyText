@@ -359,7 +359,14 @@ const createNotebookWindow = async (dbPath: string) => {
   logger.info(`Notebook opening: ${dbPath}`);
   const dbService = await NotebookDbService.initLocal(dbPath);
   const searchService = new SearchService();
-  const documentService = new DocumentService({ dbService, searchService });
+  const docContentSubscriptionService = new DocContentSubscriptionService();
+  const docListSubscriptionService = new DocListSubscriptionService();
+  const documentService = new DocumentService({
+    dbService,
+    searchService,
+    docContentSubscriptionService,
+    docListSubscriptionService,
+  });
   const blobStorageService = new BlobStorageService({
     dbService,
   });
@@ -402,6 +409,8 @@ const createNotebookWindow = async (dbPath: string) => {
       documentService,
       searchService,
       blobStorageService,
+      docContentSubscriptionService,
+      docListSubscriptionService,
     }),
   );
 
@@ -571,6 +580,8 @@ interface NotebookMessagesOptions {
   documentService: DocumentService;
   searchService: SearchService;
   blobStorageService: BlobStorageService;
+  docContentSubscriptionService: DocContentSubscriptionService;
+  docListSubscriptionService: DocListSubscriptionService;
 }
 
 function listenNotebookMessages({
@@ -578,6 +589,8 @@ function listenNotebookMessages({
   documentService,
   searchService,
   blobStorageService,
+  docContentSubscriptionService,
+  docListSubscriptionService,
 }: NotebookMessagesOptions): IDisposable {
   const disposables: IDisposable[] = [];
   const idHelper = makeDefaultIdGenerator();
@@ -609,7 +622,7 @@ function listenNotebookMessages({
         logger.info(
           `create new page: ${newId} with title: "${req.title ?? ""}" ~`,
         );
-        DocListSubscriptionService.get().broadcast();
+        docListSubscriptionService.broadcast();
         return {
           id: newId,
         };
@@ -669,30 +682,26 @@ function listenNotebookMessages({
     subscribeDocContentChanged.listenMainIpc(
       ipcMain,
       async (evt: IpcMainInvokeEvent, req: SubscribeDocChangedRequest) => {
-        const service = DocContentSubscriptionService.get();
-        service.subscribe(req.subId, req.docId);
+        docContentSubscriptionService.subscribe(req.subId, req.docId);
       },
     ),
     unsubscribeDocContentChanged.listenMainIpc(
       ipcMain,
       async (evt: IpcMainInvokeEvent, req: UnsubscribeDocChangedRequest) => {
-        const service = DocContentSubscriptionService.get();
-        service.unsubscribe(req.subId);
+        docContentSubscriptionService.unsubscribe(req.subId);
       },
     ),
     subscribeDocListChanged.listenMainIpc(
       ipcMain,
       async (evt: IpcMainInvokeEvent, req: SubscribeDocListChanged) => {
-        const service = DocListSubscriptionService.get();
-        service.subscribe(req.subId);
+        docListSubscriptionService.subscribe(req.subId);
         return undefined;
       },
     ),
     unsubscribeDocListChanged.listenMainIpc(
       ipcMain,
       async (evt: IpcMainInvokeEvent, req: SubscribeDocListChanged) => {
-        const service = DocListSubscriptionService.get();
-        service.unsubscribe(req.subId);
+        docListSubscriptionService.unsubscribe(req.subId);
         return undefined;
       },
     ),
@@ -739,7 +748,7 @@ function listenNotebookMessages({
           return { done: false };
         }
         await documentService.movetoTrash(req.id);
-        DocListSubscriptionService.get().broadcast();
+        docListSubscriptionService.broadcast();
         return { done: true };
       },
     ),
@@ -753,7 +762,7 @@ function listenNotebookMessages({
       ipcMain,
       async (evt: IpcMainInvokeEvent, req: RecoverDocumentRequest) => {
         await documentService.recoverDocument(req.id);
-        DocListSubscriptionService.get().broadcast();
+        docListSubscriptionService.broadcast();
       },
     ),
     // TODO: optimize
@@ -800,7 +809,7 @@ function listenNotebookMessages({
         }
         logger.debug(`delete ${req.id} resp:`, resp);
         documentService.deletePermanently(req.id);
-        DocListSubscriptionService.get().broadcast();
+        docListSubscriptionService.broadcast();
         return {
           canceled: false,
         };

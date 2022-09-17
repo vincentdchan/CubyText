@@ -10,7 +10,7 @@ import type { OutlineNode } from "@pkg/common/outlineTree";
 import logger from "@pkg/main/services/logService";
 import { isUndefined } from "lodash-es";
 import { SearchService } from "@pkg/main/services/searchService";
-import {
+import type {
   DocContentSubscriptionService,
   DocListSubscriptionService,
 } from "@pkg/main/services/subscriptionService";
@@ -24,16 +24,22 @@ const idHelper = makeDefaultIdGenerator();
 export interface DocumentServiceInitOptions {
   dbService: NotebookDbService;
   searchService: SearchService;
+  docContentSubscriptionService: DocContentSubscriptionService;
+  docListSubscriptionService: DocListSubscriptionService;
 }
 
 export class DocumentService {
   #documents: Map<string, DocumentState> = new Map();
   readonly dbService: NotebookDbService;
   readonly searchService: SearchService;
+  readonly docContentSubscriptionService: DocContentSubscriptionService;
+  readonly docListSubscriptionService: DocListSubscriptionService;
 
   constructor(options: DocumentServiceInitOptions) {
     this.dbService = options.dbService;
     this.searchService = options.searchService;
+    this.docContentSubscriptionService = options.docContentSubscriptionService;
+    this.docListSubscriptionService = options.docListSubscriptionService;
   }
 
   async getDocumentStateById(id: string): Promise<DocumentState> {
@@ -121,11 +127,10 @@ export class DocumentService {
     await Promise.all(promises);
 
     logger.debug(`Changeset ${id} applied on ${docId}`);
-    const subscription = DocContentSubscriptionService.get();
-    subscription.broadcastChangeset(docId, changeset);
+    this.docContentSubscriptionService.broadcastChangeset(docId, changeset);
 
     if (applyResult.changed) {
-      DocListSubscriptionService.get().broadcast();
+      this.docListSubscriptionService.broadcast();
     }
 
     if (documentState.changesetCounter >= DocumentState.ChangesetMergeCount) {
@@ -190,8 +195,7 @@ export class DocumentService {
     this.searchService.deleteItem(id);
     logger.info(`${id} moved to trash`);
 
-    const subscription = DocContentSubscriptionService.get();
-    subscription.broadcastTrash(id);
+    this.docContentSubscriptionService.broadcastTrash(id);
   }
 
   async fetchTrash(): Promise<SearchItem[]> {
