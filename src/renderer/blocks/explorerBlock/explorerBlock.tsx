@@ -1,5 +1,5 @@
 import { ComponentChildren, JSX } from "preact";
-import { useCallback, useRef, useEffect } from "preact/hooks";
+import { useCallback, useState, useEffect } from "preact/hooks";
 import { PureComponent } from "preact/compat";
 import { type BlockElement, Changeset } from "blocky-data";
 import { type EditorController } from "blocky-core";
@@ -20,7 +20,9 @@ export interface ExplorerBlockProps {
 
 export function ExplorerBlock(props: ExplorerBlockProps) {
   const nextSource = props.blockElement.getAttribute("source");
-  const dataProvider = useRef<DataProvider | undefined>(undefined);
+  const [dataProvider, setDataProvider] = useState<DataProvider | undefined>(
+    undefined,
+  );
   const blockId = props.blockElement.id;
 
   useEffect(() => {
@@ -29,7 +31,10 @@ export function ExplorerBlock(props: ExplorerBlockProps) {
       newDataProvider = new RecentDataProvider(blockId);
     } else if (nextSource === "trash") {
       newDataProvider = new TrashDataProvider(blockId);
+    } else {
+      return;
     }
+    setDataProvider(newDataProvider);
     return () => newDataProvider.dispose();
   }, [nextSource, blockId]);
 
@@ -44,7 +49,7 @@ export function ExplorerBlock(props: ExplorerBlockProps) {
     [props.controller, props.blockElement],
   );
 
-  if (isUndefined(dataProvider.current)) {
+  if (isUndefined(dataProvider)) {
     return <ExplorerSelector onSelect={handleSelectProvider} />;
   }
   return (
@@ -52,7 +57,7 @@ export function ExplorerBlock(props: ExplorerBlockProps) {
       style={{
         height: 260,
       }}
-      dataProvider={dataProvider.current}
+      dataProvider={dataProvider}
       source={nextSource}
     />
   );
