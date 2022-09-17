@@ -10,21 +10,17 @@ import {
   type MenuItemConstructorOptions,
 } from "electron";
 import {
-  type OpenDocumentRequest,
-  type ApplyChangesetRequest,
-  type SearchDocumentsRequest,
-  type RecentDocumentsRequest,
-  type CreateDocumentRequest,
   openDocumentMessage,
   createDocumentMessage,
   applyChangeset,
   searchDocuments,
   recentDocuments,
   fetchOutline,
-  FetchOutlineRequest,
   fetchCurrentTheme,
-  subscribeDocChanged,
-  unsubscribeDocChanged,
+  subscribeDocContentChanged,
+  unsubscribeDocContentChanged,
+  subscribeDocListChanged,
+  unsubscribeDocListChanged,
   selectAndUploadImageMessage,
   getBlob,
   moveToTrash,
@@ -43,6 +39,12 @@ import {
   fetchRecentNotebooks,
   showContextMenuForRecentNotebook,
   pushRecentNotebooksChanged,
+  type OpenDocumentRequest,
+  type ApplyChangesetRequest,
+  type SearchDocumentsRequest,
+  type RecentDocumentsRequest,
+  type CreateDocumentRequest,
+  type FetchOutlineRequest,
   type WindowsActionRequest,
   type RecoverDocumentRequest,
   type MoveToTrashRequest,
@@ -60,6 +62,7 @@ import {
   type OpenNotebookRequest,
   type RecentNotebook,
   type ShowContextMenuForRecentNotebookProps,
+  type SubscribeDocListChanged,
 } from "@pkg/common/message";
 import { changesetFromMessage } from "blocky-data";
 import { makeDefaultIdGenerator } from "@pkg/main/helpers/idHelper";
@@ -74,7 +77,10 @@ import {
   FullDatabaseSnapshot,
 } from "./services/documentService";
 import { SearchService } from "./services/searchService";
-import { SubscriptionService } from "./services/subscriptionService";
+import {
+  DocContentSubscriptionService,
+  DocListSubscriptionService,
+} from "./services/subscriptionService";
 import { BlobStorageService } from "./services/blobStorageService";
 import { BlockyDocument } from "blocky-data";
 import logger, { configure as configureLog } from "./services/logService";
@@ -659,18 +665,34 @@ function listenNotebookMessages({
         };
       },
     ),
-    subscribeDocChanged.listenMainIpc(
+    subscribeDocContentChanged.listenMainIpc(
       ipcMain,
       async (evt: IpcMainInvokeEvent, req: SubscribeDocChangedRequest) => {
-        const service = SubscriptionService.get();
+        const service = DocContentSubscriptionService.get();
         service.subscribe(req.subId, req.docId);
       },
     ),
-    unsubscribeDocChanged.listenMainIpc(
+    unsubscribeDocContentChanged.listenMainIpc(
       ipcMain,
       async (evt: IpcMainInvokeEvent, req: UnsubscribeDocChangedRequest) => {
-        const service = SubscriptionService.get();
+        const service = DocContentSubscriptionService.get();
         service.unsubscribe(req.subId);
+      },
+    ),
+    subscribeDocListChanged.listenMainIpc(
+      ipcMain,
+      async (evt: IpcMainInvokeEvent, req: SubscribeDocListChanged) => {
+        const service = DocListSubscriptionService.get();
+        service.subscribe(req.subId);
+        return undefined;
+      },
+    ),
+    unsubscribeDocListChanged.listenMainIpc(
+      ipcMain,
+      async (evt: IpcMainInvokeEvent, req: SubscribeDocListChanged) => {
+        const service = DocListSubscriptionService.get();
+        service.unsubscribe(req.subId);
+        return undefined;
       },
     ),
     selectAndUploadImageMessage.listenMainIpc(

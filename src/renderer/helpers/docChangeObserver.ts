@@ -1,7 +1,7 @@
 import {
-  subscribeDocChanged,
-  unsubscribeDocChanged,
-  pushSubscriptionMessage,
+  subscribeDocContentChanged,
+  unsubscribeDocContentChanged,
+  pushDocContentChangedMessage,
   type PushSubscriptionMessage,
 } from "@pkg/common/message";
 import { Slot } from "blocky-common/es/events";
@@ -18,7 +18,9 @@ export class DocChangeObserver implements IDisposable {
   private disposables: IDisposable[] = [];
 
   constructor(readonly tabId: string, readonly docId: string) {
-    this.disposables.push(pushSubscriptionMessage.on(this.#messageHandler));
+    this.disposables.push(
+      pushDocContentChangedMessage.on(this.#messageHandler),
+    );
   }
 
   #messageHandler = (req: PushSubscriptionMessage) => {
@@ -34,7 +36,7 @@ export class DocChangeObserver implements IDisposable {
   };
 
   async start(): Promise<unknown> {
-    return subscribeDocChanged.request({
+    return subscribeDocContentChanged.request({
       subId: this.tabId,
       docId: this.docId,
     });
@@ -42,7 +44,7 @@ export class DocChangeObserver implements IDisposable {
 
   async #sendUnsubscribe() {
     try {
-      await unsubscribeDocChanged.request({
+      await unsubscribeDocContentChanged.request({
         subId: this.tabId,
       });
     } catch (err) {
