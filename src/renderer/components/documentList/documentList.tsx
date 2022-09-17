@@ -1,5 +1,5 @@
 import { SearchItem } from "@pkg/common/message";
-import { useState, memo, useEffect, useRef } from "preact/compat";
+import { useState, memo, useEffect } from "preact/compat";
 import { VirtualList, Data } from "@pkg/renderer/components/virtualList";
 import mainController from "@pkg/renderer/mainController";
 import { FontAwesomeIcon } from "@pkg/renderer/components/fontAwesomeIcon";

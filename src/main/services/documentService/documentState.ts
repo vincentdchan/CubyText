@@ -140,7 +140,10 @@ export class DocumentState {
     };
   }
 
-  applyChangeset(finalizedChangeset: FinalizedChangeset): string | undefined {
+  applyChangeset(
+    finalizedChangeset: FinalizedChangeset,
+  ): { title: string; changed: boolean } | undefined {
+    const beforeTitleContent = this.title;
     const test = this.state.apply(finalizedChangeset);
     if (!test) {
       return undefined;
@@ -149,7 +152,10 @@ export class DocumentState {
     this.debouncedNotifyOutlineChanged();
     this.reportToSearchService();
     this.changesetCounter++;
-    return afterTitleContent;
+    return {
+      title: afterTitleContent,
+      changed: beforeTitleContent !== afterTitleContent,
+    };
   }
 
   debouncedNotifyOutlineChanged = debounce(async () => {
