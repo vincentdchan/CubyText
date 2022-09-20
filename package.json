@@ -9,6 +9,7 @@
     "node": "16"
   },
   "scripts": {
+    "postinstall": "electron-rebuild better-sqlite3",
     "start": "node scripts/build.js",
     "build": "node scripts/build.js release",
     "build:package": "node scripts/build_asar.js",
@@ -36,6 +37,7 @@
     "electron-installer-debian": "^3.1.0",
     "electron-installer-dmg": "^4.0.0",
     "electron-packager": "^16.0.0",
+    "electron-rebuild": "^3.2.9",
     "esbuild": "^0.14.51",
     "eslint": "^8.23.0",
     "force-graph": "^1.42.13",

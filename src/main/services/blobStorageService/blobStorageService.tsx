@@ -18,10 +18,9 @@ export class BlobStorageService {
     const blobId = this.idHelper.mkBlobId();
     const now = new Date().getTime();
     this.dbService.db
-      .prepare(
-        `INSERT INTO blob_storage(
-      id, content, size, owner_id, created_at, accessed_at, modified_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      .prepare(`INSERT INTO blob_storage(
+        id, content, size, owner_id, created_at, accessed_at, modified_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       )
       .run(blobId, buffer, buffer.byteLength, ownerId, now, now, now);
     logger.info(
@@ -31,11 +30,11 @@ export class BlobStorageService {
   }
 
   async get(id: string): Promise<Buffer> {
-    const row = await this.dbService.db
+    const row = this.dbService.db
       .prepare(
         `SELECT
-      content as data
-      FROM blob_storage WHERE id=?`,
+        content as data
+        FROM blob_storage WHERE id=?`,
       )
       .get(id);
     return row.data;
