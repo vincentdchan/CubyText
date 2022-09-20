@@ -25,7 +25,6 @@
     "@types/is-hotkey": "^0.1.7",
     "@types/js-yaml": "^4.0.5",
     "@types/lodash-es": "^4.17.6",
-    "@types/sqlite3": "^3.1.8",
     "@typescript-eslint/eslint-plugin": "^5.35.1",
     "@typescript-eslint/parser": "^5.35.1",
     "blocky-common": "^2.10.0",
@@ -33,7 +32,7 @@
     "blocky-data": "^2.15.0",
     "blocky-preact": "^2.15.1",
     "dayjs": "^1.11.5",
-    "electron": "^20.1.2",
+    "electron": "19.0.10",
     "electron-installer-debian": "^3.1.0",
     "electron-installer-dmg": "^4.0.0",
     "electron-packager": "^16.0.0",
@@ -54,7 +53,8 @@
     "@types/responselike": "^1.0.0"
   },
   "dependencies": {
-    "log4js": "^6.6.1",
-    "sqlite3": "^5.0.10"
+    "@types/better-sqlite3": "^7.6.0",
+    "better-sqlite3": "^7.6.2",
+    "log4js": "^6.6.1"
   }
 }

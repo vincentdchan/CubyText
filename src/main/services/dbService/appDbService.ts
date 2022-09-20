@@ -5,11 +5,11 @@ export class AppDbService extends DbServiceBase {
   static async init(filename: string): Promise<AppDbService> {
     const db = await openDatabase(filename);
     const appDbService = new AppDbService(db);
-    await appDbService.initService();
+    appDbService.initService();
     return appDbService;
   }
 
-  private async initService() {
-    await this.prepareDatabase(appVersions);
+  private initService() {
+    this.prepareDatabase(appVersions);
   }
 }

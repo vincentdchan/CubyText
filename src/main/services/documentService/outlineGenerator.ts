@@ -41,7 +41,7 @@ export class OutlineGenerator {
     return generator.generate();
   }
 
-  async generate(): Promise<OutlineNode> {
+  generate(): OutlineNode {
     this.#nodeStack.push({
       id: "title",
       title: this.title || "Untitled document",
@@ -49,11 +49,11 @@ export class OutlineGenerator {
       nodeType: "normal",
       children: [],
     });
-    await this.#generateHeadingOutline(this.document.body);
+    this.#generateHeadingOutline(this.document.body);
     return this.#nodeStack[0];
   }
 
-  async #generateHeadingOutline(container: BlockyNode) {
+  #generateHeadingOutline(container: BlockyNode) {
     let ptr = container.firstChild;
     while (ptr) {
       if (ptr instanceof BlockElement && ptr.nodeName === "Text") {
@@ -87,14 +87,14 @@ export class OutlineGenerator {
             }
           }
         } else {
-          await this.#findReferences(ptr);
+          this.#findReferences(ptr);
         }
       }
       ptr = ptr.nextSibling;
     }
   }
 
-  async #findReferences(blockElement: BlockElement) {
+  #findReferences(blockElement: BlockElement) {
     const textModel = blockElement.getTextModel("textContent");
     if (!textModel) {
       return;
@@ -106,7 +106,7 @@ export class OutlineGenerator {
           const id = op.insert.docId as string;
 
           // TODO(optimize): batch query
-          const title = await this.documentService.getDocTitle(id);
+          const title = this.documentService.getDocTitle(id);
           if (isUndefined(title)) {
             continue;
           }

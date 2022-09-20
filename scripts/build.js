@@ -19,7 +19,7 @@ esbuild.build({
   },
   external: [
     "electron",
-    "sqlite3",
+    "better-sqlite3",
     "log4js",
     "path",
     "fs",

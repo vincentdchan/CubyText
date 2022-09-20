@@ -22,7 +22,7 @@ import { SearchService } from "../searchService";
  */
 
 export class FullDatabaseSnapshot {
-  static async init({
+  static init({
     dbService,
     documentService,
     searchService,
@@ -30,11 +30,12 @@ export class FullDatabaseSnapshot {
     dbService: NotebookDbService;
     documentService: DocumentService;
     searchService: SearchService;
-  }): Promise<FullDatabaseSnapshot> {
+  }): FullDatabaseSnapshot {
     const begin = performance.now();
     const snapshot = new FullDatabaseSnapshot();
-    const documentRows = await dbService.all(
-      `SELECT
+    const documentRows = dbService.db
+      .prepare(
+        `SELECT
         id,
         snapshot,
         snapshot_version AS snapshotVersion,
@@ -42,17 +43,18 @@ export class FullDatabaseSnapshot {
         created_at AS createdAt,
         modified_at AS modifiedAt
       FROM document WHERE trashed_at IS NULL`,
-      [],
-    );
-    const changesetRows = await dbService.all(
-      `SELECT
+      )
+      .all();
+    const changesetRows = dbService.db
+      .prepare(
+        `SELECT
         id,
         version_num AS version,
         content,
         document_id AS documentId
       FROM changeset`,
-      [],
-    );
+      )
+      .all();
 
     const changesetGroups = groupBy(changesetRows, "documentId");
 
