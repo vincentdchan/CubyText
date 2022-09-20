@@ -6,7 +6,7 @@ import type { Theme } from "./themeDefinition";
 import { type GlobalCommand } from "./globalCommands";
 
 export class MessageDefinition<ReqT, RespT> {
-  constructor(readonly name: string, readonly isPush: boolean = false) {}
+  constructor(readonly name: string, readonly isPush: boolean = false) { }
 
   listenMainIpc(
     ipcMain: IpcMain,
@@ -139,7 +139,11 @@ export const pushOutlineChanged = new MessageDefinition<
   unknown
 >("pushOutlineChanged", true);
 
-export const fetchCurrentTheme = new MessageDefinition<unknown, Theme>(
+export interface FetchCurrentThemeRequest {
+  dark: boolean;
+}
+
+export const fetchCurrentTheme = new MessageDefinition<FetchCurrentThemeRequest, Theme>(
   "fetchCurrentTheme",
 );
 

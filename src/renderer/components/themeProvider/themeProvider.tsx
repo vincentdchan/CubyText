@@ -14,8 +14,9 @@ export interface ThemeProviderProps {
 
 function setCssVariable(theme: Theme) {
   const { documentElement } = document;
-  const { app } = theme;
+  const { app, tooltip, modal } = theme;
   documentElement.style.setProperty("--app-bg-color", app.backgroundColor);
+  documentElement.style.setProperty("--app-sidebar-bg-color", app.sidebarBackgroundColor);
   documentElement.style.setProperty("--app-color", app.color);
   documentElement.style.setProperty(
     "--app-description-color",
@@ -36,11 +37,20 @@ function setCssVariable(theme: Theme) {
 
   documentElement.style.setProperty(
     "--tooltip-bg-color",
-    theme.tooltip.backgroundColor,
+    tooltip.backgroundColor,
   );
   documentElement.style.setProperty(
     "--tooltip-text-color",
-    theme.tooltip.color,
+    tooltip.color,
+  );
+
+  documentElement.style.setProperty(
+    "--modal-bg-color",
+    modal.backgroundColor,
+  );
+  documentElement.style.setProperty(
+    "--modal-color",
+    modal.color,
   );
 }
 
@@ -51,16 +61,26 @@ class ThemeProvider extends Component<ThemeProviderProps, ThemeProviderState> {
   }
 
   override componentDidMount() {
-    this.#fetchTheme();
+    const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    this.#fetchTheme(dark);
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener("change", this.#handleDarkModeChanged);
   }
 
-  async #fetchTheme() {
-    const theme = await fetchCurrentTheme.request({});
+  override componentWillUnmount(): void {
+    window.matchMedia('(prefers-color-scheme: dark)').removeEventListener("change", this.#handleDarkModeChanged);
+  }
+
+  #handleDarkModeChanged = () => {
+    const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    this.#fetchTheme(dark);
+  }
+
+  async #fetchTheme(dark: boolean) {
+    const theme = await fetchCurrentTheme.request({ dark });
     themeSingleton.set(theme);
     setCssVariable(theme);
-    this.setState({
-      theme,
-    });
+    this.setState({ theme });
   }
 
   render(props: ThemeProviderProps) {

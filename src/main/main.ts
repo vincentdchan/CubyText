@@ -63,6 +63,7 @@ import {
   type RecentNotebook,
   type ShowContextMenuForRecentNotebookProps,
   type SubscribeDocListChanged,
+  FetchCurrentThemeRequest,
 } from "@pkg/common/message";
 import { changesetFromMessage } from "blocky-data";
 import { makeDefaultIdGenerator } from "@pkg/main/helpers/idHelper";
@@ -520,20 +521,35 @@ function listenAppMessages(): IDisposable {
   const disposables: IDisposable[] = [];
 
   disposables.push(
-    fetchCurrentTheme.listenMainIpc(ipcMain, async () => {
-      const themePath = path.join(
-        __dirname,
-        "..",
-        "..",
-        "themes",
-        "default-theme.yml",
-      );
-      // This method is called when the app is started.
-      // It must response as fast as possible.
-      // I am sorry to use the sync version to block the process.
-      const themeContent = fs.readFileSync(themePath, "utf8");
-      return yaml.load(themeContent) as any;
-    }),
+    fetchCurrentTheme.listenMainIpc(
+      ipcMain,
+      async (evt: IpcMainInvokeEvent, req: FetchCurrentThemeRequest) => {
+        let themePath: string;
+        if (req.dark) {
+          themePath = path.join(
+            __dirname,
+            "..",
+            "..",
+            "themes",
+            "default-dark-theme.yml",
+          );
+        } else {
+          themePath = path.join(
+            __dirname,
+            "..",
+            "..",
+            "themes",
+            "default-theme.yml",
+          );
+        }
+        logger.debug("fetch theme path:", themePath);
+        // This method is called when the app is started.
+        // It must response as fast as possible.
+        // I am sorry to use the sync version to block the process.
+        const themeContent = fs.readFileSync(themePath, "utf8");
+        return yaml.load(themeContent) as any;
+      },
+    ),
     windowAction.listenMainIpc(
       ipcMain,
       async (evt: IpcMainInvokeEvent, req: WindowsActionRequest) => {

@@ -9,10 +9,16 @@ export interface NavbarTheme {
   backgroundColor: string;
 }
 
+export interface ModalTheme {
+  color: string /** text color */;
+  backgroundColor: string;
+}
+
 export interface AppTheme {
   color: string /** text color */;
   descriptionColor: string;
   backgroundColor: string;
+  sidebarBackgroundColor: string;
   hoverBackgroundColor: string;
   hoverBackgroundColorDeeper: string;
   borderColor: string;
@@ -27,4 +33,5 @@ export interface Theme {
   editor: EditorTheme;
   tooltip: TooltipTheme;
   navbar: NavbarTheme;
+  modal: ModalTheme;
 }
