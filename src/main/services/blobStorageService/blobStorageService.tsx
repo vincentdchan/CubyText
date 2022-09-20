@@ -17,12 +17,13 @@ export class BlobStorageService {
   async store(ownerId: string, buffer: Buffer): Promise<string> {
     const blobId = this.idHelper.mkBlobId();
     const now = new Date().getTime();
-    await this.dbService.run(
-      `INSERT INTO blob_storage(
+    this.dbService.db
+      .prepare(
+        `INSERT INTO blob_storage(
       id, content, size, owner_id, created_at, accessed_at, modified_at)
       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [blobId, buffer, buffer.byteLength, ownerId, now, now, now],
-    );
+      )
+      .run(blobId, buffer, buffer.byteLength, ownerId, now, now, now);
     logger.info(
       `Blob ${blobId} stored, size: ${buffer.byteLength}, owner: ${ownerId}`,
     );
@@ -30,12 +31,13 @@ export class BlobStorageService {
   }
 
   async get(id: string): Promise<Buffer> {
-    const row = await this.dbService.get(
-      `SELECT
+    const row = await this.dbService.db
+      .prepare(
+        `SELECT
       content as data
       FROM blob_storage WHERE id=?`,
-      [id],
-    );
+      )
+      .get(id);
     return row.data;
   }
 }

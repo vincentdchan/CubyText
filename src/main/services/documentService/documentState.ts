@@ -18,16 +18,17 @@ import { debounce, isEqual } from "lodash-es";
 import { SearchService } from "@pkg/main/services/searchService";
 import { DocumentService } from "./documentService";
 
-export async function getChangesetOfDocumentsFromDatabase(
+export function getChangesetOfDocumentsFromDatabase(
   dbService: NotebookDbService,
   id: string,
-): Promise<FinalizedChangeset[]> {
-  const rows = await dbService.all(
-    `SELECT id, version_num, content, created_at
-    FROM changeset
-    WHERE document_id=? ORDER BY version_num`,
-    [id],
-  );
+): FinalizedChangeset[] {
+  const rows = dbService.db
+    .prepare(
+      `SELECT id, version_num, content, created_at
+      FROM changeset
+      WHERE document_id=? ORDER BY version_num`,
+    )
+    .all(id);
   return rows.map((row) => changesetFromMessage(JSON.parse(row.content)));
 }
 
@@ -64,16 +65,17 @@ export class DocumentState {
     searchService: SearchService;
     id: string;
   }): Promise<DocumentState> {
-    const result = await dbService.get(
-      `SELECT
-        snapshot,
-        snapshot_version AS snapshotVersion,
-        accessed_at AS accessedAt,
-        created_at AS createdAt,
-        modified_at AS modifiedAt
-      FROM document WHERE id=? AND trashed_at is NULL`,
-      [id],
-    );
+    const result = dbService.db
+      .prepare(
+        `SELECT
+          snapshot,
+          snapshot_version AS snapshotVersion,
+          accessed_at AS accessedAt,
+          created_at AS createdAt,
+          modified_at AS modifiedAt
+        FROM document WHERE id=? AND trashed_at is NULL`,
+      )
+      .get(id);
     if (!result) {
       throw new Error(`Can not find document in database by ID: ${id}`);
     }
@@ -187,9 +189,7 @@ export class DocumentState {
     );
   }
 
-  async generateOutline(
-    referencesCollector?: OutlineNode[],
-  ): Promise<OutlineNode> {
+  generateOutline(referencesCollector?: OutlineNode[]): OutlineNode {
     const generator = new OutlineGenerator({
       document: this.state.document,
       referencesCollector,

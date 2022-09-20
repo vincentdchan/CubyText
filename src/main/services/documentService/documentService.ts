@@ -76,26 +76,24 @@ export class DocumentService {
     };
   }
 
-  async getDocTitleEvenTrash(id: string): Promise<string | undefined> {
-    const row = await this.dbService.get(
-      `SELECT title FROM document WHERE id=?`,
-      [id],
-    );
+  getDocTitleEvenTrash(id: string): string | undefined {
+    const row = this.dbService.db
+      .prepare(`SELECT title FROM document WHERE id=?`)
+      .get(id);
     return row?.title;
   }
 
-  async getDocTitle(id: string): Promise<string | undefined> {
-    const row = await this.dbService.get(
-      `SELECT title FROM document WHERE id=? AND trashed_at IS NULL`,
-      [id],
-    );
+  getDocTitle(id: string): string | undefined {
+    const row = this.dbService.db
+      .prepare(`SELECT title FROM document WHERE id=? AND trashed_at IS NULL`)
+      .get(id);
     return row?.title;
   }
 
-  async applyChangeset(
+  applyChangeset(
     docId: string,
     changeset: FinalizedChangeset,
-  ): Promise<string | undefined> {
+  ): string | undefined {
     const documentState = this.#documents.get(docId);
     if (!documentState) {
       throw new Error(`document not opened, can not apply: ${docId}`);
@@ -106,25 +104,17 @@ export class DocumentService {
     }
     const id = idHelper.mkChangesetId();
     const now = new Date().getTime();
-    const promises: Promise<any>[] = [];
 
-    this.dbService.db.serialize(() => {
-      promises.push(
-        this.dbService.run(
-          `INSERT INTO changeset(id, version_num, document_id, content, created_at)
+    this.dbService.db
+      .prepare(
+        `INSERT INTO changeset(id, version_num, document_id, content, created_at)
           VALUES(?, ?, ?, ?, ?)`,
-          [id, 0, docId, JSON.stringify(changesetToMessage(changeset)), now],
-        ),
-      );
-      promises.push(
-        this.dbService.run(
-          `UPDATE document SET title=?, modified_at=? WHERE id=?`,
-          [applyResult.title, now, docId],
-        ),
-      );
-    });
+      )
+      .run(id, 0, docId, JSON.stringify(changesetToMessage(changeset)), now);
 
-    await Promise.all(promises);
+    this.dbService.db
+      .prepare(`UPDATE document SET title=?, modified_at=? WHERE id=?`)
+      .run(applyResult.title, now, docId);
 
     logger.debug(`Changeset ${id} applied on ${docId}`);
     this.docContentSubscriptionService.broadcastChangeset(docId, changeset);
@@ -140,21 +130,23 @@ export class DocumentService {
     return id;
   }
 
-  async #mergeChangesets(documentState: DocumentState) {
+  #mergeChangesets(documentState: DocumentState) {
     const begin = performance.now();
 
     try {
       const snapshot = documentState.state.document.toJSON();
       const snapshotVersion = documentState.state.appliedVersion;
-      await this.dbService.run(
-        `UPDATE document
-        SET snapshot=?, snapshot_version=?
-        WHERE id=?`,
-        [JSON.stringify(snapshot), snapshotVersion, documentState.id],
-      );
-      await this.dbService.run(`DELETE FROM changeset WHERE document_id=?`, [
-        documentState.id,
-      ]);
+      this.dbService.db
+        .prepare(
+          `UPDATE document
+          SET snapshot=?, snapshot_version=?
+          WHERE id=?`,
+        )
+        .run(JSON.stringify(snapshot), snapshotVersion, documentState.id);
+
+      this.dbService.db
+        .prepare(`DELETE FROM changeset WHERE document_id=?`)
+        .run(documentState.id);
 
       documentState.changesetCounter = 0;
       logger.info(
@@ -185,13 +177,12 @@ export class DocumentService {
     }
   }
 
-  async movetoTrash(id: string): Promise<void> {
+  movetoTrash(id: string): void {
     this.#documents.delete(id);
     const now = new Date().getTime();
-    await this.dbService.run(`UPDATE document SET trashed_at=? WHERE id=?`, [
-      now,
-      id,
-    ]);
+    this.dbService.db
+      .prepare(`UPDATE document SET trashed_at=? WHERE id=?`)
+      .run(now, id);
     this.searchService.deleteItem(id);
     logger.info(`${id} moved to trash`);
 
@@ -199,16 +190,17 @@ export class DocumentService {
   }
 
   async fetchTrash(): Promise<SearchItem[]> {
-    const rows = await this.dbService.all(
-      `SELECT
+    const rows = this.dbService.db
+      .prepare(
+        `SELECT
         id as key, title,
         accessed_at as accessedAt,
         created_at as createdAt,
         modified_at as modifiedAt
       FROM document
       WHERE trashed_at IS NOT NULL`,
-      [],
-    );
+      )
+      .all();
     rows.forEach((row) => {
       if (!row.title) {
         row.title = "Untitled document";
@@ -217,29 +209,32 @@ export class DocumentService {
     return rows;
   }
 
-  async recoverDocument(id: string): Promise<void> {
-    await this.dbService.run(`UPDATE document SET trashed_at=NULL WHERE id=?`, [
-      id,
-    ]);
+  recoverDocument(id: string): void {
+    this.dbService.db
+      .prepare(`UPDATE document SET trashed_at=NULL WHERE id=?`)
+      .run(id);
     logger.info(`${id} recovered`);
   }
 
-  async deletePermanently(id: string): Promise<void> {
+  deletePermanently(id: string): void {
     const begin = performance.now();
-    await this.dbService.run(
-      `DELETE FROM document WHERE id=? AND trashed_at IS NOT NULL`,
-      [id],
-    );
-    await this.dbService.run(`DELETE FROM changeset WHERE document_id=?`, [id]);
-    await this.dbService.run(`DELETE FROM blob_storage WHERE owner_id=?`, [id]);
+    this.dbService.db
+      .prepare(`DELETE FROM document WHERE id=? AND trashed_at IS NOT NULL`)
+      .run(id);
+    this.dbService.db
+      .prepare(`DELETE FROM changeset WHERE document_id=?`)
+      .run(id);
+    this.dbService.db
+      .prepare(`DELETE FROM blob_storage WHERE owner_id=?`)
+      .run(id);
     logger.info(
       `${id} is deleted permanently in ${performance.now() - begin}ms`,
     );
   }
 
-  async computeGraph(): Promise<GetGraphInfoResponse> {
+  computeGraph(): GetGraphInfoResponse {
     const begin = performance.now();
-    const fullSnapshot = await FullDatabaseSnapshot.init({
+    const fullSnapshot = FullDatabaseSnapshot.init({
       dbService: this.dbService,
       documentService: this,
       searchService: this.searchService,
@@ -258,15 +253,15 @@ export class DocumentService {
         val,
       };
     });
-    const graph = await this.#computeGraph(nodes, fullSnapshot);
+    const graph = this.#computeGraph(nodes, fullSnapshot);
     logger.info(`compute graph in ${performance.now() - begin}ms`);
     return graph;
   }
 
-  async #computeGraph(
+  #computeGraph(
     nodes: any[],
     fullSnapshot: FullDatabaseSnapshot,
-  ): Promise<GetGraphInfoResponse> {
+  ): GetGraphInfoResponse {
     const nodesMap = new Map<string, any>();
     for (const node of nodes) {
       nodesMap.set(node.id, node);
@@ -277,7 +272,7 @@ export class DocumentService {
       const docState = fullSnapshot.documents.get(node.id)!;
       try {
         const references: OutlineNode[] = [];
-        await docState.generateOutline(references);
+        docState.generateOutline(references);
         for (const ref of references) {
           const docId = ref.id.slice("Ref-".length);
           links.push({

@@ -101,7 +101,7 @@ function isFile(path: string): boolean {
   }
 }
 
-async function insertLegacyNotebookToRecentNotebooks(
+function insertLegacyNotebookToRecentNotebooks(
   userDataDir: string,
   appDbService: AppDbService,
 ) {
@@ -109,19 +109,19 @@ async function insertLegacyNotebookToRecentNotebooks(
   if (!isFile(legacyDbPath)) {
     return;
   }
-  const exist = await appDbService.get(
-    `SELECT id FROM recent_notebooks WHERE local_path=?`,
-    [legacyDbPath],
-  );
+  const exist = appDbService.db
+    .prepare(`SELECT id FROM recent_notebooks WHERE local_path=?`)
+    .get(legacyDbPath);
   if (exist) {
     return;
   }
   const now = new Date().getTime();
-  await appDbService.run(
-    `INSERT INTO recent_notebooks(local_path, last_opened_at)
+  appDbService.db
+    .prepare(
+      `INSERT INTO recent_notebooks(local_path, last_opened_at)
     VALUES (?, ?)`,
-    [legacyDbPath, now],
-  );
+    )
+    .run(legacyDbPath, now);
 }
 
 const createWelcomeWindow = async () => {
@@ -188,31 +188,32 @@ const createWelcomeWindow = async () => {
 function listenWelcomeWindowEvents(appDbService: AppDbService): IDisposable {
   const disposables: IDisposable[] = [];
 
-  const reportNotebook = async (dbPath: string) => {
-    const exist = await appDbService.get(
-      `SELECT id FROM recent_notebooks WHERE local_path=?`,
-      [dbPath],
-    );
+  const reportNotebook = (dbPath: string) => {
+    const exist = appDbService.db
+      .prepare(`SELECT id FROM recent_notebooks WHERE local_path=?`)
+      .get(dbPath);
     const now = new Date().getTime();
     if (exist) {
-      await appDbService.run(
-        `UPDATE recent_notebooks
+      appDbService.db
+        .prepare(
+          `UPDATE recent_notebooks
             SET last_opened_at=?
             WHERE local_path=?`,
-        [now, dbPath],
-      );
+        )
+        .run(now, dbPath);
     } else {
-      await appDbService.run(
-        `INSERT INTO
+      appDbService.db
+        .prepare(
+          `INSERT INTO
         recent_notebooks(local_path, last_opened_at) VALUES (?, ?)`,
-        [dbPath, now],
-      );
+        )
+        .run(dbPath, now);
     }
   };
 
   const reportAndOpenDb = async (dbPath: string) => {
     await createNotebookWindow(dbPath);
-    await reportNotebook(dbPath);
+    reportNotebook(dbPath);
     logger.info("Notebook reported:", dbPath);
   };
 
@@ -268,13 +269,14 @@ function listenWelcomeWindowEvents(appDbService: AppDbService): IDisposable {
     ),
     fetchRecentNotebooks.listenMainIpc(ipcMain, async () => {
       logger.debug(`fetching recent notebook`);
-      const rows = await appDbService.all(
-        `SELECT id, local_path as localPath, last_opened_at as lastOpenedAt
+      const rows = appDbService.db
+        .prepare(
+          `SELECT id, local_path as localPath, last_opened_at as lastOpenedAt
           FROM recent_notebooks
           ORDER BY last_opened_at DESC
           LIMIT 20`,
-        [],
-      );
+        )
+        .all();
       const data: RecentNotebook[] = rows.map((row) => {
         let title = "Unnamed";
         if (isString(row.localPath)) {
@@ -301,10 +303,9 @@ function listenWelcomeWindowEvents(appDbService: AppDbService): IDisposable {
             return;
           }
           logger.info(`Remove recent path: ${localPath}`);
-          await appDbService.run(
-            `DELETE FROM recent_notebooks WHERE local_path=?`,
-            [req.localPath],
-          );
+          appDbService.db
+            .prepare(`DELETE FROM recent_notebooks WHERE local_path=?`)
+            .run(req.localPath);
           pushRecentNotebooksChanged.push(singleton.welcomeWindow!, {});
         };
 
@@ -614,11 +615,12 @@ function listenNotebookMessages({
           title: req.title,
         });
         const snapshot = JSON.stringify(document.toJSON());
-        await dbService.run(
-          `INSERT INTO document(id, snapshot, snapshot_version, accessed_at, created_at, modified_at) VALUES
-      (?, ?, ?, ?, ?, ?)`,
-          [newId, snapshot, 0, now, now, now],
-        );
+        dbService.db
+          .prepare(
+            `INSERT INTO document(id, snapshot, snapshot_version, accessed_at, created_at, modified_at) VALUES
+            (?, ?, ?, ?, ?, ?)`,
+          )
+          .run(newId, snapshot, 0, now, now, now);
         logger.info(
           `create new page: ${newId} with title: "${req.title ?? ""}" ~`,
         );
@@ -652,15 +654,16 @@ function listenNotebookMessages({
       ipcMain,
       async (evt: IpcMainInvokeEvent, req: RecentDocumentsRequest) => {
         const limit = Math.min(100, req.limit ?? 10);
-        const rows = await dbService.all(
-          `SELECT
-            id as key, title,
-            created_at as createdAt, modified_at as modifiedAt
-          FROM document
-          WHERE trashed_at is NULL
-          ORDER BY modified_at DESC LIMIT ?`,
-          [limit],
-        );
+        const rows = dbService.db
+          .prepare(
+            `SELECT
+              id as key, title,
+              created_at as createdAt, modified_at as modifiedAt
+            FROM document
+            WHERE trashed_at is NULL
+            ORDER BY modified_at DESC LIMIT ?`,
+          )
+          .all(limit);
         return {
           data: rows.map((item) => {
             if (!item.title) {
@@ -787,11 +790,12 @@ function listenNotebookMessages({
     deletePermanently.listenMainIpc(
       ipcMain,
       async (evt: IpcMainInvokeEvent, req: DeletePermanentlyRequest) => {
-        const row = await dbService.get(
-          `SELECT title FROM document
-      WHERE id=? AND trashed_at IS NOT NULL`,
-          [req.id],
-        );
+        const row = dbService.db
+          .prepare(
+            `SELECT title FROM document
+            WHERE id=? AND trashed_at IS NOT NULL`,
+          )
+          .get(req.id);
 
         if (!row) {
           logger.error(`${req.id} not found, can not delete permanently`);

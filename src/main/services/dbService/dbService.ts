@@ -1,28 +1,20 @@
-import { Database } from "sqlite3";
+import Database, { Database as BetterDatabase } from "better-sqlite3";
 import logger from "@pkg/main/services/logService";
 import { type DbVersion } from "./version";
 
-export function openDatabase(filename: string): Promise<Database> {
-  return new Promise((resolve, reject) => {
-    const db = new Database(filename, (err) => {
-      if (err) {
-        return reject(err);
-      }
-      resolve(db);
-    });
-  });
+export function openDatabase(filename: string): BetterDatabase {
+  return new Database(filename);
 }
 
 export class DbServiceBase {
-  protected constructor(readonly db: Database) {}
+  protected constructor(readonly db: BetterDatabase) {}
 
-  protected async prepareDatabase(dbVersions: DbVersion[]) {
-    await this.run(`PRAGMA journal_mode = WAL;`, []);
-    await this.run(
+  protected prepareDatabase(dbVersions: DbVersion[]) {
+    this.db.exec(`PRAGMA journal_mode = WAL;`);
+    this.db.exec(
       "CREATE TABLE IF NOT EXISTS global_kv (key TEXT PRIMARY KEY, value TEXT)",
-      [],
     );
-    let version = parseInt((await this.kvGet("version")) ?? "-1", 10);
+    let version = parseInt(this.kvGet("version") ?? "-1", 10);
     if (version === dbVersions.length - 1) {
       return;
     }
@@ -34,81 +26,24 @@ export class DbServiceBase {
       v.execute(this.db);
     }
 
-    await this.kvSet("version", version.toString());
+    this.kvSet("version", version.toString());
   }
 
-  kvGet(key: string): Promise<string | undefined> {
-    return new Promise<string>((resolve, reject) => {
-      this.db.get(
-        `SELECT value FROM global_kv WHERE key=?`,
-        [key],
-        (err: Error | null, row: any) => {
-          if (err) {
-            return reject(err);
-          }
-          resolve(row?.value);
-        },
-      );
-    });
+  kvGet(key: string): string | undefined {
+    const row = this.db
+      .prepare(`SELECT value FROM global_kv WHERE key=?`)
+      .get(key);
+    return row?.value;
   }
 
-  kvSet(key: string, value: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.db.run(
-        `INSERT OR REPLACE INTO global_kv(key, value) VALUES (?, ?)`,
-        [key, value],
-        (err: Error | null) => {
-          if (err) {
-            return reject(err);
-          }
-          resolve();
-        },
-      );
-    });
+  kvSet(key: string, value: string): void {
+    this.db
+      .prepare(`INSERT OR REPLACE INTO global_kv(key, value) VALUES (?, ?)`)
+      .run(key, value);
   }
 
-  run(sql: string, params: any): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.db.run(sql, params, (err: Error | null) => {
-        if (err) {
-          return reject(err);
-        }
-        resolve();
-      });
-    });
-  }
-
-  get(sql: string, params: any): Promise<any> {
-    return new Promise((resolve, reject) => {
-      this.db.get(sql, params, (err: Error | null, row: any) => {
-        if (err) {
-          return reject();
-        }
-        resolve(row);
-      });
-    });
-  }
-
-  all(sql: string, params: any): Promise<any[]> {
-    return new Promise((resolve, reject) => {
-      this.db.all(sql, params, (err: Error | null, rows: any[]) => {
-        if (err) {
-          return reject();
-        }
-        resolve(rows);
-      });
-    });
-  }
-
-  close(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      logger.info("db closed~");
-      this.db.close((err) => {
-        if (err) {
-          return reject(err);
-        }
-        resolve();
-      });
-    });
+  close() {
+    this.db.close();
+    logger.info("db closed~");
   }
 }

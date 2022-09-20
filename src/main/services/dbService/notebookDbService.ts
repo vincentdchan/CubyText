@@ -22,11 +22,11 @@ export class NotebookDbService extends DbServiceBase {
     return service;
   }
 
-  async initService() {
+  initService() {
     try {
       const begin = performance.now();
-      await this.prepareDatabase(notebookVersions);
-      await this.#initHomePageIfNeed();
+      this.prepareDatabase(notebookVersions);
+      this.#initHomePageIfNeed();
       const end = performance.now();
       logger.info(`db init in ${end - begin}ms`);
     } catch (err) {
@@ -35,10 +35,12 @@ export class NotebookDbService extends DbServiceBase {
     }
   }
 
-  async #initHomePageIfNeed() {
-    const home = await this.get(`SELECT id FROM document WHERE id=?`, [homeId]);
+  #initHomePageIfNeed() {
+    const home = this.db
+      .prepare(`SELECT id FROM document WHERE id=?`)
+      .get(homeId);
     if (isUndefined(home)) {
-      await this.#forceInitHomePage();
+      this.#forceInitHomePage();
     }
     logger.debug("home: ", home);
   }
@@ -47,10 +49,11 @@ export class NotebookDbService extends DbServiceBase {
     const homeTitle = "Home";
     logger.info("init home page...");
     const now = new Date().getTime();
-    await this.run(
-      `INSERT INTO document(id, title, snapshot, snapshot_version, accessed_at, created_at, modified_at)
+    this.db
+      .prepare(
+        `INSERT INTO document(id, title, snapshot, snapshot_version, accessed_at, created_at, modified_at)
         VALUES (?, ?, ?, 0, ?, ?, ?)`,
-      [homeId, homeTitle, JSON.stringify(HomeInitData), now, now, now],
-    );
+      )
+      .run(homeId, homeTitle, JSON.stringify(HomeInitData), now, now, now);
   }
 }
