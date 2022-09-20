@@ -4,7 +4,7 @@ body {
   width: 100%;
   padding: 0;
   margin: 0;
-  background: #fafafa;
+  background: var(--app-bg-color, #fafafa);
   font-family: -apple-system, 'Helvetica Neue', arial, sans-serif;
   font-weight: 400;
   color: var(--app-color);

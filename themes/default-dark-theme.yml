@@ -1,12 +1,12 @@
 name: Default
 
 app:
-  color: "#444"
+  color: rgb(212, 212, 212)
   descriptionColor: rgb(121, 121, 118)
-  backgroundColor: rgb(255, 255, 253)
-  sidebarBackgroundColor: rgb(240, 239, 236)
-  hoverBackgroundColor: rgb(240, 239, 236)
-  hoverBackgroundColorDeeper: rgb(210, 209, 207)
+  backgroundColor: rgb(25, 25, 23)
+  sidebarBackgroundColor: rgb(32, 32, 32)
+  hoverBackgroundColor: rgb(38, 38, 38)
+  hoverBackgroundColorDeeper: rgb(32, 32, 32)
   borderColor: rgb(201, 201, 201)
   iconColor: rgb(119, 119, 114)
   grayTextColor: rgb(180, 180, 177)
@@ -20,5 +20,5 @@ navbar:
   backgroundColor: rgb(237, 235, 236)
 
 modal:
-  color: "#444"
-  backgroundColor: rgb(201, 201, 201)
+  color: rgb(212, 212, 212)
+  backgroundColor: rgb(37, 37, 37)

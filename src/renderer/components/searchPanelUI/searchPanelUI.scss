@@ -1,6 +1,6 @@
 
 .cuby-search-panel {
-  background-color: var(--app-bg-color);
+  background-color: var(--modal-bg-color);
   width: 420px;
   margin-left: 50%;
   margin-top: 120px;
@@ -13,6 +13,11 @@
     width: 100%;
     max-height: 380px;
     overflow-y: scroll;
+  }
+
+  input {
+    color: var(--modal-color);
+    background-color: var(--modal-bg-color);
   }
 }
 
