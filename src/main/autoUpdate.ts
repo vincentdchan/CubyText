@@ -7,7 +7,7 @@ const server = "https://update.electronjs.org";
 export const setupAutoUpdate = once(() => {
   logger.info("setupAutoUpdate");
   try {
-    const feed = `${server}/OWNER/REPO/${process.platform}-${
+    const feed = `${server}/vincentdchan/CubyText/${process.platform}-${
       process.arch
     }/${app.getVersion()}`;
     logger.debug("feed url", feed);
