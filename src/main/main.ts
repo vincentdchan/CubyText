@@ -9,6 +9,7 @@ import {
   type BrowserWindowConstructorOptions,
   type MenuItemConstructorOptions,
 } from "electron";
+import { setupAutoUpdate } from "./autoUpdate";
 import {
   openDocumentMessage,
   createDocumentMessage,
@@ -439,6 +440,8 @@ function getAndPrintSystemInfos() {
   }
 
   logger.info("app ready");
+  logger.info("app version:", app.getVersion());
+  logger.info("versions:", process.versions);
   const appDataDir = app.getPath("appData");
   logger.info(`appDataDir: ${appDataDir}`);
   const userDataDir = app.getPath("userData");
@@ -448,6 +451,8 @@ function getAndPrintSystemInfos() {
   singleton.appDataDir = appDataDir;
   singleton.userDataDir = userDataDir;
   singleton.logsDir = logsDir;
+
+  setupAutoUpdate();
 }
 
 /**
