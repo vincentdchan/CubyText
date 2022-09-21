@@ -23,6 +23,7 @@
     "@fortawesome/free-solid-svg-icons": "^6.1.2",
     "@preact/preset-vite": "^2.3.0",
     "@svgr/core": "^6.3.1",
+    "@types/better-sqlite3": "^7.6.0",
     "@types/is-hotkey": "^0.1.7",
     "@types/js-yaml": "^4.0.5",
     "@types/lodash-es": "^4.17.6",
@@ -55,7 +56,6 @@
     "@types/responselike": "^1.0.0"
   },
   "dependencies": {
-    "@types/better-sqlite3": "^7.6.0",
     "better-sqlite3": "^7.6.2",
     "log4js": "^6.6.1"
   }
