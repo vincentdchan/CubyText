@@ -1,6 +1,6 @@
 
 .blocky-image-block {
-  background-color: rgb(237, 237, 235);
+  background-color: var(--app-hover-bg-color);
   min-height: 80px;
   display: flex;
   align-items: center;
