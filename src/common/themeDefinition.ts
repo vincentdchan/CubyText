@@ -33,12 +33,17 @@ export interface ButtonTheme {
   hoverBackgroundColor: string;
 }
 
+export interface MenuTheme {
+  color: string;
+}
+
 export interface Theme {
   name: string;
   app: AppTheme;
   editor: EditorTheme;
   tooltip: TooltipTheme;
   navbar: NavbarTheme;
+  menu: MenuTheme;
   modal?: Partial<ModalTheme>;
   button?: Partial<ButtonTheme>;
 }

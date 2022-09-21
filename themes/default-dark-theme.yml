@@ -2,7 +2,7 @@ name: Default
 
 app:
   color: rgb(212, 212, 212)
-  descriptionColor: rgb(121, 121, 118)
+  descriptionColor: rgb(139, 139, 139)
   backgroundColor: rgb(25, 25, 23)
   sidebarBackgroundColor: rgb(32, 32, 32)
   hoverBackgroundColor: rgb(38, 38, 38)
@@ -11,6 +11,9 @@ app:
   iconColor: rgb(212, 212, 212)
   grayTextColor: rgb(180, 180, 177)
   dangerColor: rgb(201, 56, 56)
+
+menu:
+  color: rgb(217, 217, 217)
 
 tooltip:
   backgroundColor: rgb(15, 15, 15)

@@ -38,6 +38,7 @@ export class SidebarNav extends Component<SidebarNavProps, SidebarNavState> {
   }
 
   #resetPainter() {
+    console.log("sidebar painter reset");
     const ctx = this.#canvasRef.current!.getContext("2d")!;
     this.painter = new SidebarPainter(
       this.#canvasRef.current!,
@@ -56,7 +57,7 @@ export class SidebarNav extends Component<SidebarNavProps, SidebarNavState> {
   }
 
   override componentDidUpdate(prevProps: SidebarNavProps) {
-    if ((prevProps.data?.length ?? 0) !== (this.props.data?.length ?? 0)) {
+    if (prevProps.data !== this.props.data) {
       this.#resetPainter();
       return;
     }
