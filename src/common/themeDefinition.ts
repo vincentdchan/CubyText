@@ -27,11 +27,18 @@ export interface AppTheme {
   dangerColor: string;
 }
 
+export interface ButtonTheme {
+  color: string;
+  backgroundColor: string;
+  hoverBackgroundColor: string;
+}
+
 export interface Theme {
   name: string;
   app: AppTheme;
   editor: EditorTheme;
   tooltip: TooltipTheme;
   navbar: NavbarTheme;
-  modal: ModalTheme;
+  modal?: Partial<ModalTheme>;
+  button?: Partial<ButtonTheme>;
 }

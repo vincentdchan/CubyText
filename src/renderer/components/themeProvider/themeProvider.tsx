@@ -2,7 +2,7 @@ import { Component } from "preact";
 import { fetchCurrentTheme } from "@pkg/common/message";
 import type { Theme } from "@pkg/common/themeDefinition";
 import { themeSingleton } from "@pkg/renderer/styles";
-import { isUndefined } from "lodash-es";
+import { isString, isUndefined } from "lodash-es";
 
 interface ThemeProviderState {
   theme?: Theme;
@@ -13,45 +13,41 @@ export interface ThemeProviderProps {
 }
 
 function setCssVariable(theme: Theme) {
-  const { documentElement } = document;
-  const { app, tooltip, modal } = theme;
-  documentElement.style.setProperty("--app-bg-color", app.backgroundColor);
-  documentElement.style.setProperty("--app-sidebar-bg-color", app.sidebarBackgroundColor);
-  documentElement.style.setProperty("--app-color", app.color);
-  documentElement.style.setProperty(
-    "--app-description-color",
-    app.descriptionColor,
-  );
-  documentElement.style.setProperty("--app-gray-color", app.grayTextColor);
-  documentElement.style.setProperty("--app-icon-color", app.iconColor);
-  documentElement.style.setProperty(
-    "--app-hover-bg-color",
-    app.hoverBackgroundColor,
-  );
-  documentElement.style.setProperty(
+  const { app, tooltip, modal, button } = theme;
+  // App style
+  setPropertyIfExist("--app-bg-color", app.backgroundColor);
+  setPropertyIfExist("--app-sidebar-bg-color", app.sidebarBackgroundColor);
+  setPropertyIfExist("--app-color", app.color);
+  setPropertyIfExist("--app-description-color", app.descriptionColor);
+  setPropertyIfExist("--app-gray-color", app.grayTextColor);
+  setPropertyIfExist("--app-icon-color", app.iconColor);
+  setPropertyIfExist("--app-hover-bg-color", app.hoverBackgroundColor);
+  setPropertyIfExist(
     "--app-hover-bg-color-deeper",
     app.hoverBackgroundColorDeeper,
   );
-  documentElement.style.setProperty("--app-border-color", app.borderColor);
-  documentElement.style.setProperty("--app-danger-color", app.dangerColor);
+  setPropertyIfExist("--app-border-color", app.borderColor);
+  setPropertyIfExist("--app-danger-color", app.dangerColor);
 
-  documentElement.style.setProperty(
-    "--tooltip-bg-color",
-    tooltip.backgroundColor,
-  );
-  documentElement.style.setProperty(
-    "--tooltip-text-color",
-    tooltip.color,
-  );
+  setPropertyIfExist("--tooltip-bg-color", tooltip.backgroundColor);
+  setPropertyIfExist("--tooltip-text-color", tooltip.color);
 
-  documentElement.style.setProperty(
-    "--modal-bg-color",
-    modal.backgroundColor,
-  );
-  documentElement.style.setProperty(
-    "--modal-color",
-    modal.color,
-  );
+  // Modal style
+  setPropertyIfExist("--modal-bg-color", modal?.backgroundColor);
+  setPropertyIfExist("--modal-color", modal?.color);
+
+  // Button style
+  setPropertyIfExist("--button-color", button?.color);
+  setPropertyIfExist("--button-bg-color", button?.backgroundColor);
+  setPropertyIfExist("--button-hover-bg-color", button?.hoverBackgroundColor);
+}
+
+function setPropertyIfExist(name: string, value: string | undefined) {
+  if (!isString(value)) {
+    document.documentElement.style.removeProperty(name);
+    return;
+  }
+  document.documentElement.style.setProperty(name, value);
 }
 
 class ThemeProvider extends Component<ThemeProviderProps, ThemeProviderState> {
@@ -61,20 +57,24 @@ class ThemeProvider extends Component<ThemeProviderProps, ThemeProviderState> {
   }
 
   override componentDidMount() {
-    const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     this.#fetchTheme(dark);
 
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener("change", this.#handleDarkModeChanged);
+    window
+      .matchMedia("(prefers-color-scheme: dark)")
+      .addEventListener("change", this.#handleDarkModeChanged);
   }
 
   override componentWillUnmount(): void {
-    window.matchMedia('(prefers-color-scheme: dark)').removeEventListener("change", this.#handleDarkModeChanged);
+    window
+      .matchMedia("(prefers-color-scheme: dark)")
+      .removeEventListener("change", this.#handleDarkModeChanged);
   }
 
   #handleDarkModeChanged = () => {
-    const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     this.#fetchTheme(dark);
-  }
+  };
 
   async #fetchTheme(dark: boolean) {
     const theme = await fetchCurrentTheme.request({ dark });

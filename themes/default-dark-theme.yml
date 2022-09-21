@@ -7,8 +7,8 @@ app:
   sidebarBackgroundColor: rgb(32, 32, 32)
   hoverBackgroundColor: rgb(38, 38, 38)
   hoverBackgroundColorDeeper: rgb(32, 32, 32)
-  borderColor: rgb(201, 201, 201)
-  iconColor: rgb(119, 119, 114)
+  borderColor: rgb(43, 43, 43)
+  iconColor: rgb(212, 212, 212)
   grayTextColor: rgb(180, 180, 177)
   dangerColor: rgb(201, 56, 56)
 
@@ -22,3 +22,8 @@ navbar:
 modal:
   color: rgb(212, 212, 212)
   backgroundColor: rgb(37, 37, 37)
+
+button:
+  color: rgb(212, 212, 212)
+  backgroundColor: rgb(25, 25, 23)
+  hoverBackgroundColor: rgb(47, 47, 47)
