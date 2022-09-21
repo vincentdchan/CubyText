@@ -12,6 +12,9 @@ app:
   grayTextColor: rgb(180, 180, 177)
   dangerColor: rgb(201, 56, 56)
 
+menu:
+  color: rgb(72, 72, 72)
+
 tooltip:
   backgroundColor: rgb(15, 15, 15)
   color: rgb(231, 231, 231)

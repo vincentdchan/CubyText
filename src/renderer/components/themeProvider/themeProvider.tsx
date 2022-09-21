@@ -13,7 +13,7 @@ export interface ThemeProviderProps {
 }
 
 function setCssVariable(theme: Theme) {
-  const { app, tooltip, modal, button } = theme;
+  const { app, tooltip, modal, button, menu } = theme;
   // App style
   setPropertyIfExist("--app-bg-color", app.backgroundColor);
   setPropertyIfExist("--app-sidebar-bg-color", app.sidebarBackgroundColor);
@@ -40,6 +40,9 @@ function setCssVariable(theme: Theme) {
   setPropertyIfExist("--button-color", button?.color);
   setPropertyIfExist("--button-bg-color", button?.backgroundColor);
   setPropertyIfExist("--button-hover-bg-color", button?.hoverBackgroundColor);
+
+  // Menu style
+  setPropertyIfExist("--menu-color", menu.color);
 }
 
 function setPropertyIfExist(name: string, value: string | undefined) {

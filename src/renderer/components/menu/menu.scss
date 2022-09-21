@@ -11,7 +11,7 @@
 .blocky-menu-item {
   padding: 8px 12px;
   font-size: 14px;
-  color: rgb(72, 72, 72);
+  color: var(--menu-color);
 
   &.flex {
     display: flex;
