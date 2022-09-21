@@ -1,9 +1,10 @@
 import type { ForceGraphInstance } from "force-graph";
-import { $on } from "blocky-common/es/dom";
+import { $on, clearAllChildren } from "blocky-common/es/dom";
 import { debounce } from "lodash-es";
 import { getGraphInfo } from "@pkg/common/message";
+import mainController from "@pkg/renderer/mainController";
+import { themeSingleton } from "@pkg/renderer/styles";
 import { TabDelegate } from "./tabDelegate";
-import mainController from "../mainController";
 
 export class TabGraph extends TabDelegate {
   forceGraphModule: typeof import("force-graph") | undefined;
@@ -27,13 +28,17 @@ export class TabGraph extends TabDelegate {
     this.#resizeObserver.observe(this.container);
 
     $on(this.container, "click", () => this.focus.emit());
+    themeSingleton.changed.on(() => this.initGraphModule());
+
     this.initGraphModule();
   }
 
   async initGraphModule() {
+    clearAllChildren(this.container);
     this.forceGraphModule = await import("force-graph");
     const graphData = await getGraphInfo.request({});
 
+    const theme = themeSingleton.get()!;
     const graph = this.forceGraphModule.default();
     this.#instance = graph(this.container)
       .graphData(graphData)
@@ -44,9 +49,11 @@ export class TabGraph extends TabDelegate {
         ctx.font = `${fontSize}px Sans-Serif`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillStyle = "black"; //node.color;
+        ctx.fillStyle = theme.app.color; //node.color;
         ctx.fillText(label, node.x, node.y + 18);
       })
+      .linkColor(() => theme.app.borderColor)
+      .nodeColor(() => "rgb(76,130,181)")
       .onNodeClick((node: any) => {
         mainController.openDocOnActiveTab(node.id);
       })
