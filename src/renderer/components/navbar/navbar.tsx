@@ -4,20 +4,53 @@ import {
   faSearch,
   faTableColumns,
   faEarthAsia,
+  faCircleUp,
 } from "@fortawesome/free-solid-svg-icons";
 import { TabsManager } from "@pkg/renderer/view/tabsManager";
 import mainController from "@pkg/renderer/mainController";
 import { isMac, keys } from "@pkg/renderer/platforms";
-import { windowAction } from "@pkg/common/message";
+import {
+  pushNewAppVersion,
+  windowAction,
+  quitAndInstallUpgrade,
+  type PushNewAppVersionRequest,
+} from "@pkg/common/message";
+import { isString } from "lodash-es";
 import { NavbarButton } from "./navbarButton";
 import Navigator from "./navigator";
+import { flattenDisposable, IDisposable } from "blocky-common/es/disposable";
 import "./navbar.scss";
 
 export interface NavbarProps {
   onSearchClicked?: () => void;
 }
 
-class Navbar extends PureComponent<NavbarProps> {
+export interface NavbarState {
+  newVersion?: string;
+}
+
+class Navbar extends PureComponent<NavbarProps, NavbarState> {
+  private disposables: IDisposable[] = [];
+
+  constructor(props: NavbarProps) {
+    super(props);
+    this.state = {};
+  }
+
+  override componentDidMount(): void {
+    this.disposables.push(
+      pushNewAppVersion.on((req: PushNewAppVersionRequest) => {
+        this.setState({
+          newVersion: req.version,
+        });
+      }),
+    );
+  }
+
+  override componentWillUnmount(): void {
+    flattenDisposable(this.disposables).dispose();
+  }
+
   #handleSplit = (e: JSX.TargetedEvent<HTMLElement>) => {
     e.preventDefault();
     TabsManager.instance?.splitTab();
@@ -38,7 +71,9 @@ class Navbar extends PureComponent<NavbarProps> {
     await windowAction.request({ action: "autoMaximize" });
   };
 
-  render(props: NavbarProps) {
+  #quickAndInstallUpdate = () => quitAndInstallUpgrade.request({});
+
+  render(props: NavbarProps, { newVersion }: NavbarState) {
     return (
       <div
         className="cuby-navbar cuby-border-bottom"
@@ -47,6 +82,14 @@ class Navbar extends PureComponent<NavbarProps> {
         <div style={{ width: isMac ? "80px" : "0px" }}></div>
         <Navigator />
         <div className="right">
+          {isString(newVersion) && (
+            <NavbarButton
+              icon={faCircleUp}
+              tooltipContent={`Upgrade CubyText to ${newVersion}`}
+              onClick={this.#quickAndInstallUpdate}
+              className="update-icon"
+            />
+          )}
           <NavbarButton
             tooltipContent={`Create a new doc (${keys.superKey} T)`}
             icon={faPlus}

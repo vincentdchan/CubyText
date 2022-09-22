@@ -6,6 +6,7 @@ import {
   dialog,
   shell,
   Menu,
+  autoUpdater,
   type BrowserWindowConstructorOptions,
   type MenuItemConstructorOptions,
 } from "electron";
@@ -40,6 +41,7 @@ import {
   fetchRecentNotebooks,
   showContextMenuForRecentNotebook,
   pushRecentNotebooksChanged,
+  quitAndInstallUpgrade,
   type OpenDocumentRequest,
   type ApplyChangesetRequest,
   type SearchDocumentsRequest,
@@ -417,6 +419,10 @@ const createNotebookWindow = async (dbPath: string) => {
     }),
   );
 
+  win.on("ready-to-show", () => {
+    setupAutoUpdate();
+  });
+
   win.on("close", () => {
     logger.info("Notebook window closing");
     singleton.browserWindow = undefined;
@@ -451,8 +457,6 @@ function getAndPrintSystemInfos() {
   singleton.appDataDir = appDataDir;
   singleton.userDataDir = userDataDir;
   singleton.logsDir = logsDir;
-
-  setupAutoUpdate();
 }
 
 /**
@@ -904,6 +908,9 @@ function listenNotebookMessages({
         return undefined;
       },
     ),
+    quitAndInstallUpgrade.listenMainIpc(ipcMain, async () => {
+      autoUpdater.quitAndInstall();
+    }),
   );
 
   return flattenDisposable(disposables);

@@ -6,7 +6,7 @@ import type { Theme } from "./themeDefinition";
 import { type GlobalCommand } from "./globalCommands";
 
 export class MessageDefinition<ReqT, RespT> {
-  constructor(readonly name: string, readonly isPush: boolean = false) { }
+  constructor(readonly name: string, readonly isPush: boolean = false) {}
 
   listenMainIpc(
     ipcMain: IpcMain,
@@ -143,9 +143,10 @@ export interface FetchCurrentThemeRequest {
   dark: boolean;
 }
 
-export const fetchCurrentTheme = new MessageDefinition<FetchCurrentThemeRequest, Theme>(
-  "fetchCurrentTheme",
-);
+export const fetchCurrentTheme = new MessageDefinition<
+  FetchCurrentThemeRequest,
+  Theme
+>("fetchCurrentTheme");
 
 export interface SubscribeDocChangedRequest {
   subId: string;
@@ -387,6 +388,19 @@ export const pushRecentNotebooksChanged = new MessageDefinition(
   true,
 );
 
+export interface PushNewAppVersionRequest {
+  version: string;
+}
+
+export const pushNewAppVersion = new MessageDefinition<
+  PushNewAppVersionRequest,
+  undefined
+>("pushNewAppVersion", true);
+
+export const quitAndInstallUpgrade = new MessageDefinition(
+  "quitAndInstallUpgrade",
+);
+
 /**
  * This array is used to register callbacks.
  * Consider using decorator to do this.
@@ -423,4 +437,6 @@ export const messages: MessageDefinition<any, any>[] = [
   fetchRecentNotebooks,
   showContextMenuForRecentNotebook,
   pushRecentNotebooksChanged,
+  pushNewAppVersion,
+  quitAndInstallUpgrade,
 ];
