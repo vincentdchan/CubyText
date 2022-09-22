@@ -427,7 +427,6 @@ const createNotebookWindow = async (dbPath: string) => {
     logger.info("Notebook window closing");
     singleton.browserWindow = undefined;
     flattenDisposable(disposables).dispose();
-    createWelcomeWindow();
   });
 
   win.on("closed", async () => {
@@ -493,10 +492,18 @@ app.whenReady().then(() => {
   createWelcomeWindow();
 });
 
-// DO NOT remove this
-app.on("window-all-closed", () => {
-  logger.debug("window all closed");
-});
+if (process.platform === "darwin") {
+  app.on("window-all-closed", (e: Event) => {
+    logger.debug("window all closed");
+    e.preventDefault();
+  });
+  app.on("activate", () => {
+    logger.debug("activate app");
+    if (!singleton.welcomeWindow && !singleton.browserWindow) {
+      createWelcomeWindow();
+    }
+  });
+}
 
 app.on("before-quit", () => {
   logger.info("prepare to quit");
