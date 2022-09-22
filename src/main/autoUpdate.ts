@@ -1,10 +1,18 @@
 import { autoUpdater, app } from "electron";
 import logger from "./services/logService";
 import { once } from "lodash-es";
+import { pushNewAppVersion } from "@pkg/common/message";
+import singleton from "./singleton";
 
 const server = "https://update.electronjs.org";
 
 export const setupAutoUpdate = once(() => {
+  if (process.platform !== "darwin" && process.platform !== "win32") {
+    return;
+  }
+  // pushNewAppVersion.push(singleton.browserWindow!, {
+  //   version: "releaseName",
+  // });
   logger.info("setupAutoUpdate");
   try {
     const feed = `${server}/vincentdchan/CubyText/${process.platform}-${
@@ -17,6 +25,7 @@ export const setupAutoUpdate = once(() => {
     });
 
     setInterval(() => {
+      logger.info("checkForUpdates");
       autoUpdater.checkForUpdates();
     }, 10 * 60 * 1000);
 
@@ -29,6 +38,9 @@ export const setupAutoUpdate = once(() => {
         logger.info("releaseName", releaseName);
         logger.info("releaseDate", releaseDate);
         logger.info("<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+        pushNewAppVersion.push(singleton.browserWindow!, {
+          version: releaseName,
+        });
       },
     );
 

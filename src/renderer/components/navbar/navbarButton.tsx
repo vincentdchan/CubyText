@@ -15,6 +15,7 @@ interface NavbarButtonProps {
   childRef?: RefObject<any>;
   disable?: boolean;
   children?: any;
+  className?: string;
 }
 
 export class NavbarButton extends PureComponent<NavbarButtonProps> {
@@ -33,9 +34,14 @@ export class NavbarButton extends PureComponent<NavbarButtonProps> {
   };
 
   #renderContent() {
+    const { className, disable, icon } = this.props;
     let cls = "cuby-navbar-button cuby-hover-bg";
-    if (this.props.disable) {
+    if (disable) {
       cls += " disabled";
+    }
+    if (className) {
+      cls += " ";
+      cls += className;
     }
     return (
       <div
@@ -45,7 +51,7 @@ export class NavbarButton extends PureComponent<NavbarButtonProps> {
       >
         <FontAwesomeIcon
           style={{ width: "14px", height: "14px" }}
-          icon={this.props.icon}
+          icon={icon}
         />
       </div>
     );
