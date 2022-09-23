@@ -215,10 +215,27 @@ function listenWelcomeWindowEvents(appDbService: AppDbService): IDisposable {
     }
   };
 
-  const reportAndOpenDb = async (dbPath: string) => {
-    await createNotebookWindow(dbPath);
-    reportNotebook(dbPath);
-    logger.info("Notebook reported:", dbPath);
+  const deleteNotebookRecord = (dbPath: string) => {
+    appDbService.db
+      .prepare("DELETE FROM recent_notebooks WHERE local_path=?")
+      .run(dbPath);
+  };
+
+  const reportAndOpenDb = async ({
+    dbPath,
+    createIfNotExist,
+  }: {
+    dbPath: string;
+    createIfNotExist: boolean;
+  }) => {
+    try {
+      await createNotebookWindow(dbPath, createIfNotExist);
+      reportNotebook(dbPath);
+      logger.info("Notebook reported:", dbPath);
+    } catch (err) {
+      deleteNotebookRecord(dbPath);
+      throw err;
+    }
   };
 
   disposables.push(
@@ -241,11 +258,17 @@ function listenWelcomeWindowEvents(appDbService: AppDbService): IDisposable {
             if (result.canceled || !result.filePath) {
               return;
             }
-            await reportAndOpenDb(result.filePath);
+            await reportAndOpenDb({
+              dbPath: result.filePath,
+              createIfNotExist: true,
+            });
             break;
           }
           case OpenNotebookFlag.OpenPath: {
-            await reportAndOpenDb(req.path!);
+            await reportAndOpenDb({
+              dbPath: req.path!,
+              createIfNotExist: false,
+            });
             break;
           }
           case OpenNotebookFlag.SelectFile: {
@@ -263,7 +286,10 @@ function listenWelcomeWindowEvents(appDbService: AppDbService): IDisposable {
             if (result.canceled || result.filePaths.length === 0) {
               return;
             }
-            await reportAndOpenDb(result.filePaths[0]);
+            await reportAndOpenDb({
+              dbPath: result.filePaths[0],
+              createIfNotExist: false,
+            });
             break;
           }
         }
@@ -317,7 +343,10 @@ function listenWelcomeWindowEvents(appDbService: AppDbService): IDisposable {
           {
             label: "Open",
             click: async () => {
-              await reportAndOpenDb(req.localPath!);
+              await reportAndOpenDb({
+                dbPath: req.localPath!,
+                createIfNotExist: false,
+              });
               singleton.welcomeWindow?.close();
             },
           },
@@ -351,7 +380,15 @@ function listenWelcomeWindowEvents(appDbService: AppDbService): IDisposable {
   return flattenDisposable(disposables);
 }
 
-const createNotebookWindow = async (dbPath: string) => {
+const createNotebookWindow = async (
+  dbPath: string,
+  createIfNotExist: boolean,
+) => {
+  if (!createIfNotExist && !isFile(dbPath)) {
+    await dialog.showErrorBox("Error", "File doesn't exist:" + dbPath);
+    throw new Error("File doesn't exist:" + dbPath);
+  }
+
   const options: BrowserWindowConstructorOptions = {
     title: appName,
     width: 1024,
