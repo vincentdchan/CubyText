@@ -162,6 +162,21 @@ const FileList = memo(() => {
   const [recentList, setRecentList] = useState<RecentNotebook[] | undefined>(
     undefined,
   );
+  const fetchData = async () => {
+    const resp = await fetchRecentNotebooks.request({});
+    setRecentList(resp.data);
+  };
+  const openDatabase = async (path: string, flags: number) => {
+    try {
+      await openNotebook.request({
+        path: path,
+        flags,
+      });
+    } catch (err) {
+      console.error(err);
+      fetchData();
+    }
+  };
   const [selectedIndex, setSelectedIndex] = useSelectable({
     length: recentList?.length ?? 0,
     onSelect: async (index: number) => {
@@ -169,31 +184,20 @@ const FileList = memo(() => {
         return;
       }
       const item = recentList[index];
-      await openNotebook.request({
-        path: item.localPath!,
-        flags: OpenNotebookFlag.OpenPath,
-      });
+      await openDatabase(item.localPath!, OpenNotebookFlag.OpenPath);
     },
   });
-  const fetchData = async () => {
-    const resp = await fetchRecentNotebooks.request({});
-    setRecentList(resp.data);
-  };
   useEffect(() => {
     const disposable = pushRecentNotebooksChanged.on(() => {
       fetchData();
     });
-
     return () => disposable.dispose();
   }, []);
   useEffect(() => {
     fetchData();
   }, []);
   const handleFileDbClick = (path: string) => async () => {
-    await openNotebook.request({
-      path,
-      flags: OpenNotebookFlag.OpenPath,
-    });
+    await openDatabase(path, OpenNotebookFlag.OpenPath);
   };
   if (isUndefined(recentList)) {
     return <div className="cuby-file-list"></div>;
