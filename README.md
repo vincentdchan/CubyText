@@ -64,9 +64,11 @@ It doesn't have complex concepts, just simple pages and blocks. No big deal.
 
     <img src="./images/search.gif" width="520" />
 
+- Dark mode
+  ![](./images/dark-mode.png)
+
 Work in progress:
 
-- [ ] Custom themes(WIP)
 - [ ] Extensions(WIP)
 
 ## Technologies
