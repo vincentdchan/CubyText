@@ -19,7 +19,7 @@ export class SearchBoxRenderer implements IDisposable {
     private controller: EditorController,
   ) {
     this.#placeholder = generatePlaceholder();
-    parent.appendChild(this.#placeholder);
+    parent.insertBefore(this.#placeholder, parent.firstChild);
   }
 
   toggle() {

@@ -230,7 +230,7 @@ export class TabEditor extends TabDelegate {
     });
 
     this.#searchBoxRenderer = new SearchBoxRenderer(
-      this.container,
+      this.container.parentElement!,
       this.editorController,
     );
 
