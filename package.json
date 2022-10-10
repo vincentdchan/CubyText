@@ -34,7 +34,7 @@
     "@typescript-eslint/eslint-plugin": "^5.35.1",
     "@typescript-eslint/parser": "^5.35.1",
     "blocky-common": "^2.10.0",
-    "blocky-core": "^2.16.0",
+    "blocky-core": "^2.16.1",
     "blocky-data": "^2.16.0",
     "blocky-preact": "^2.16.0",
     "dayjs": "^1.11.5",

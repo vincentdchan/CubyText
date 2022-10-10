@@ -1010,10 +1010,10 @@ blocky-common@^2.10.0:
   resolved "https://registry.yarnpkg.com/blocky-common/-/blocky-common-2.14.0.tgz#b255d4f9d33298c3aa603bc9bd1772d6e2801c46"
   integrity sha512-IkTgOmKchcKOfcr2QZKVHcVJPgmWfeYFksgaQFkNsxWUNiWOJDdVduBLA09hLRwZ9PthMNTSTwc6USvoErrdkg==
 
-blocky-core@^2.16.0:
-  version "2.16.0"
-  resolved "https://registry.yarnpkg.com/blocky-core/-/blocky-core-2.16.0.tgz#08ad50e4597c5e631df50cdd6e994ae0eaf7dae1"
-  integrity sha512-+Mu4NQhmbVrNWkKmf4M0vHrzuFFQeGUdbBGaO9tQeDHr6PPzU61YHsx6CXK7zWJO9S8uGzF6kRXX0jimbTtOrQ==
+blocky-core@^2.16.1:
+  version "2.16.1"
+  resolved "https://registry.yarnpkg.com/blocky-core/-/blocky-core-2.16.1.tgz#260f5fc1cf889b0aa3e71ede21008c3d09315cdb"
+  integrity sha512-i0MqnjWUVTzn+hUXmbjewTfnkyQEoZZ7PBhdrcUb3nWne3FnHd3YAETQApi1bCQjns0MhitM/Gp/9XKHVy2Tdw==
   dependencies:
     blocky-common "2.16.0"
     is-hotkey "^0.2.0"
