@@ -33,6 +33,7 @@ import { DocChangeObserver } from "@pkg/renderer/helpers/docChangeObserver";
 import { TabDelegate } from "./tabDelegate";
 import { homeId } from "@pkg/common/constants";
 import { TabsManager } from "./tabsManager";
+import { SearchBoxRenderer } from "./searchBoxRenderer";
 import "blocky-core/css/styled-text-plugin.css";
 import "blocky-core/css/blocky-core.css";
 
@@ -137,6 +138,7 @@ function makeController(
 export class TabEditor extends TabDelegate {
   #scrollContainer: HTMLDivElement;
   #docChangeObserver: DocChangeObserver;
+  #searchBoxRenderer: SearchBoxRenderer | undefined;
   editorController: EditorController | undefined;
   editor: Editor | undefined;
 
@@ -168,6 +170,10 @@ export class TabEditor extends TabDelegate {
     }
     this.focus.emit();
   };
+
+  toggleSearchBox() {
+    this.#searchBoxRenderer?.toggle();
+  }
 
   async #readDataFromBackend() {
     try {
@@ -222,6 +228,12 @@ export class TabEditor extends TabDelegate {
         this.focus.emit();
       }
     });
+
+    this.#searchBoxRenderer = new SearchBoxRenderer(
+      this.#scrollContainer,
+      this.editorController,
+    );
+
     this.editor = Editor.fromController(
       this.#scrollContainer,
       this.editorController,

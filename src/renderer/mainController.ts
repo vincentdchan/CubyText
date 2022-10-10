@@ -59,7 +59,6 @@ class MainController {
     if (isHotkey("mod+w", e)) {
       // TODO: close this tab
       e.preventDefault();
-      e.preventDefault();
     } else if (isHotkey("mod+t", e)) {
       e.preventDefault();
       this.createANewDoc();
@@ -70,10 +69,33 @@ class MainController {
       e.preventDefault();
       const tabsManager = TabsManager.instance;
       tabsManager?.splitTab();
+    } else if (isHotkey("mod+f", e)) {
+      e.preventDefault();
+      this.toggleSearchBoxOnCurrentTab();
     }
   };
 
+  toggleSearchBoxOnCurrentTab() {
+    const tab = this.#getFocusedTab();
+    if (!tab) {
+      return;
+    }
+
+    const { activeTab } = tab;
+    if (activeTab instanceof TabEditor) {
+      activeTab.toggleSearchBox();
+    }
+  }
+
   refreshCurrentTab() {
+    const tab = this.#getFocusedTab();
+    if (!tab) {
+      return;
+    }
+    tab.refresh();
+  }
+
+  #getFocusedTab(): Tab | undefined {
     const tabsManager = TabsManager.instance;
     if (!tabsManager) {
       return;
@@ -82,11 +104,7 @@ class MainController {
     if (!focusedId) {
       return;
     }
-    const tab = tabsManager.tabsMap.get(focusedId);
-    if (!tab) {
-      return;
-    }
-    tab.refresh();
+    return tabsManager.tabsMap.get(focusedId);
   }
 
   bind(obj: any, names: string[]): IDisposable {
@@ -115,15 +133,7 @@ class MainController {
   }
 
   openDocOnActiveTab(docId: string) {
-    const tabsManager = TabsManager.instance;
-    if (!tabsManager) {
-      return;
-    }
-    const tabId = this.#getActiveTabId();
-    if (isUndefined(tabId)) {
-      return;
-    }
-    const tab = tabsManager.tabsMap.get(tabId);
+    const tab = this.#getFocusedTab();
     if (isUndefined(tab)) {
       return;
     }
@@ -167,23 +177,6 @@ class MainController {
     const newTab = tabsManager.splitTab();
     if (newTab) {
       newTab.initGraph();
-    }
-  }
-
-  #getActiveTabId(): string | undefined {
-    const tabsManager = TabsManager.instance;
-    if (!tabsManager) {
-      return;
-    }
-    const tabId = this.focusedTabId.get();
-    if (!isUndefined(tabId)) {
-      return tabId;
-    }
-
-    for (const tab of tabsManager.tabs) {
-      if (isUndefined(tab.docId)) {
-        return tab.id;
-      }
     }
   }
 
