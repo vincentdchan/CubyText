@@ -47,7 +47,7 @@ export class SearchBoxRenderer implements IDisposable {
 }
 
 class SearchBoxContainer extends DivContainer {
-  public close = new Slot();
+  close = new Slot();
 
   constructor(private controller: EditorController) {
     super("cuby-search-box-renderer");
