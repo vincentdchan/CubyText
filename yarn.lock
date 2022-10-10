@@ -1000,40 +1000,40 @@ bl@^4.0.3, bl@^4.1.0:
     inherits "^2.0.4"
     readable-stream "^3.4.0"
 
-blocky-common@2.15.0:
-  version "2.15.0"
-  resolved "https://registry.yarnpkg.com/blocky-common/-/blocky-common-2.15.0.tgz#6fd2041f9ac291b04925baad7451208c7f1e2810"
-  integrity sha512-/yRJF3crpo1VZWx7ngfElrT/HvElrRCgxiJOl0/AB5VJzpquzqtjUIS7wpbrb2pVoMG8EobE9m82lfcj4/VezA==
+blocky-common@2.16.0:
+  version "2.16.0"
+  resolved "https://registry.yarnpkg.com/blocky-common/-/blocky-common-2.16.0.tgz#5bf4695297898301854446c354719a1cc2215632"
+  integrity sha512-K4yzbhydcuA4ilDvERSXouEKGxf3SXsnBeaQjR6L+Z9l7fASv2P2kclxVGfa9sUd9d3/Xz7Kinx6ijXtr/OPKA==
 
 blocky-common@^2.10.0:
   version "2.14.0"
   resolved "https://registry.yarnpkg.com/blocky-common/-/blocky-common-2.14.0.tgz#b255d4f9d33298c3aa603bc9bd1772d6e2801c46"
   integrity sha512-IkTgOmKchcKOfcr2QZKVHcVJPgmWfeYFksgaQFkNsxWUNiWOJDdVduBLA09hLRwZ9PthMNTSTwc6USvoErrdkg==
 
-blocky-core@^2.15.3:
-  version "2.15.3"
-  resolved "https://registry.yarnpkg.com/blocky-core/-/blocky-core-2.15.3.tgz#c20350bfeb71178b72ab4818ad2ece5ac7905ee4"
-  integrity sha512-5mil3Lm9Yicp8fHFfSPbHsBdVDm2iTCxBIInwzksVv7Nj35RYUavbDtdUqH4PciCQ9cqSOl6gTSddIF3iP9l4A==
+blocky-core@^2.16.0:
+  version "2.16.0"
+  resolved "https://registry.yarnpkg.com/blocky-core/-/blocky-core-2.16.0.tgz#08ad50e4597c5e631df50cdd6e994ae0eaf7dae1"
+  integrity sha512-+Mu4NQhmbVrNWkKmf4M0vHrzuFFQeGUdbBGaO9tQeDHr6PPzU61YHsx6CXK7zWJO9S8uGzF6kRXX0jimbTtOrQ==
   dependencies:
-    blocky-common "2.15.0"
+    blocky-common "2.16.0"
     is-hotkey "^0.2.0"
     lodash-es "^4.17.21"
 
-blocky-data@^2.15.0:
-  version "2.15.0"
-  resolved "https://registry.yarnpkg.com/blocky-data/-/blocky-data-2.15.0.tgz#6881917b6dea19ba66b680ca3ad0537677b41aba"
-  integrity sha512-APBGpygiKPjYgdT9iwt/0tKBpjMupPWEcV3ldT1QQOJkXCMD3Arf3qXcVqm1Rwtr/jwrYSI9jssdV26cAAkk5A==
+blocky-data@^2.16.0:
+  version "2.16.0"
+  resolved "https://registry.yarnpkg.com/blocky-data/-/blocky-data-2.16.0.tgz#0bb52f98340465dbc32bb7b10bddf6690e0abb73"
+  integrity sha512-mPwVJCq8HqrmCFQlPAvOYkoKtjM2JkjvgnPr5OG7gFznUX5tGjpnNmnHuO2IQktwBhj1vJdbK3xDxEdBI+p3UQ==
   dependencies:
-    blocky-common "2.15.0"
+    blocky-common "2.16.0"
     lodash-es "^4.17.21"
     quill-delta-es "5.2.0"
 
-blocky-preact@^2.15.1:
-  version "2.15.1"
-  resolved "https://registry.yarnpkg.com/blocky-preact/-/blocky-preact-2.15.1.tgz#97fa02ca39edccc30f875debde035250e3be36a2"
-  integrity sha512-HtGEa9EvyxZ6LPI4RbFbkdTQJaj/tzDe+DSNKXSc8gRfFNvwh5Yptx0krImCVLLW9KZUsXVCojaddQUFp5j6IA==
+blocky-preact@^2.16.0:
+  version "2.16.0"
+  resolved "https://registry.yarnpkg.com/blocky-preact/-/blocky-preact-2.16.0.tgz#cfbcaf28e345234b0736ae8c650485483496eeb0"
+  integrity sha512-2gm3Ee++WY/B27x1VAuU34bOyPE/eATUakHkLEmVW1RQASSFnnrwSG7+JyZ5hUMTlpsFo5zh8utn29HUgQCzeg==
   dependencies:
-    blocky-common "2.15.0"
+    blocky-common "2.16.0"
     lodash-es "*"
 
 bluebird@^3.1.1, bluebird@^3.5.0:

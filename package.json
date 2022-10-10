@@ -6,8 +6,8 @@
   "author": "Vincent Chan",
   "license": "MIT",
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/vincentdchan/CubyText.git"
+    "type": "git",
+    "url": "https://github.com/vincentdchan/CubyText.git"
   },
   "engines": {
     "node": "16"
@@ -34,9 +34,9 @@
     "@typescript-eslint/eslint-plugin": "^5.35.1",
     "@typescript-eslint/parser": "^5.35.1",
     "blocky-common": "^2.10.0",
-    "blocky-core": "^2.15.3",
-    "blocky-data": "^2.15.0",
-    "blocky-preact": "^2.15.1",
+    "blocky-core": "^2.16.0",
+    "blocky-data": "^2.16.0",
+    "blocky-preact": "^2.16.0",
     "dayjs": "^1.11.5",
     "electron": "19.0.10",
     "electron-installer-debian": "^3.1.0",
