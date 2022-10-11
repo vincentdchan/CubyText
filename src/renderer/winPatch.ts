@@ -1,5 +1,5 @@
-import { isWindows } from "@pkg/renderer/platforms"
+import { isMac } from "@pkg/renderer/platforms"
 
-if (isWindows) {
+if (!isMac) {
   import("./winPatch.scss");
 }
