@@ -6,6 +6,7 @@
   border-width: 1px;
   color: var(--button-color);
   background-color: var(--button-bg-color);
+  box-sizing: border-box;
 
   &.primary {
     color: white;
@@ -23,5 +24,9 @@
   &[disabled] {
     background-color: rgb(175, 175, 175);
     border: none;
+
+    &:hover {
+      background-color: rgb(175, 175, 175);
+    }
   }
 }

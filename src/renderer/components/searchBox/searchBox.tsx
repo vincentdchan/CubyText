@@ -3,6 +3,12 @@ import Button from "@pkg/renderer/components/button";
 import { type EditorController, type SearchContext } from "blocky-core";
 import { type CursorState, CursorStateUpdateReason } from "blocky-data";
 import { debounce } from "lodash-es";
+import { FontAwesomeIcon } from "@pkg/renderer/components/fontAwesomeIcon";
+import {
+  faClose,
+  faArrowLeft,
+  faArrowRight,
+} from "@fortawesome/free-solid-svg-icons";
 import "./searchBox.scss";
 
 export interface SearchBoxProps {
@@ -152,13 +158,23 @@ class SearchBox extends Component<SearchBoxProps, SearchBoxState> {
           ref={this.#inputRef}
         />
         <div className="result-display">{this.#resultMessage()}</div>
-        <Button onClick={this.#emitPrev} disabled={this.#prevDisabled()}>
-          {"<"}
+        <Button
+          type="primary"
+          onClick={this.#emitPrev}
+          disabled={this.#prevDisabled()}
+        >
+          <FontAwesomeIcon icon={faArrowLeft} />
         </Button>
-        <Button onClick={this.#emitNext} disabled={this.#nextDisabled()}>
-          {">"}
+        <Button
+          type="primary"
+          onClick={this.#emitNext}
+          disabled={this.#nextDisabled()}
+        >
+          <FontAwesomeIcon icon={faArrowRight} />
         </Button>
-        <Button onClick={props.onClose}>{"X"}</Button>
+        <Button onClick={props.onClose}>
+          <FontAwesomeIcon icon={faClose} />
+        </Button>
       </div>
     );
   }
