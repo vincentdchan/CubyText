@@ -19,6 +19,7 @@ import {
 import IconImage from "./images/icons.png";
 import { listenWindow } from "blocky-common/es/dom";
 import { isUndefined } from "lodash-es";
+import "./winPatch";
 import "./app.scss";
 import "./welcome.scss";
 

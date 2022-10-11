@@ -8,6 +8,7 @@ import MainSplitLayout from "@pkg/renderer/components/mainSplitLayout";
 import ThemeProvider from "./components/themeProvider";
 import Navbar from "./components/navbar";
 import mainController from "./mainController";
+import "./winPatch";
 import "./app.scss";
 
 interface AppState {
